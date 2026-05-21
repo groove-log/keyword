@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # 1. Redis 브로커
+  redis:
+    image: redis:7-alpine
+    container_name: keyword-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # 2. PostgreSQL 데이터베이스 (외부 DB가 없을 경우 사용)
+  db:
+    image: postgres:15-alpine
+    container_name: keyword-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-ledger_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ledger_pass}
+      POSTGRES_DB: ${DB_NAME:-ledger_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 3. Celery 워커 애플리케이션
+  celery-worker:
+    build: .
+    container_name: keyword-worker
+    restart: always
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-ledger_db}
+      - DB_USER=${DB_USER:-ledger_user}
+      - DB_PASSWORD=${DB_PASSWORD:-ledger_pass}
+      - LLAMA_API_URL=${LLAMA_API_URL:-http://host.docker.internal:8081}
+      - LLAMA_API_KEY=${LLAMA_API_KEY:-embed-secure-key-1122}
+      - LLAMA_EMBED_MODE=${LLAMA_EMBED_MODE:-v1}
+    depends_on:
+      - redis
+      - db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  postgres_data:
