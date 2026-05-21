@@ -8,6 +8,7 @@ services:
     restart: always
     ports:
       - "6379:6379"
+    
 
   # 2. PostgreSQL 데이터베이스 (외부 DB가 없을 경우 사용)
   db:
@@ -43,6 +44,13 @@ services:
       - db
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    #networks:
+    #- publish_default
+
+#networks:
+  #publish_default
+    #external: true
+    
 
 volumes:
   postgres_data:
