@@ -100,3 +100,7 @@ python publish_test.py
 | 언론 | 언론 노출 위험 |
 
 > 향후 `[긴급 알림 발송 대상]` 로그가 출력되는 시점에 Mpush API 호출 로직을 추가하세요.
+
+.venv/bin/celery -A worker worker --loglevel=info
+
+python3 publish_test.py
