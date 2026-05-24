@@ -20,7 +20,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-ledger_pass}
       POSTGRES_DB: ${DB_NAME:-ledger_db}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -36,16 +36,48 @@ services:
       - DB_NAME=${DB_NAME:-ledger_db}
       - DB_USER=${DB_USER:-ledger_user}
       - DB_PASSWORD=${DB_PASSWORD:-ledger_pass}
-      - LLAMA_API_URL=${LLAMA_API_URL:-http://host.docker.internal:8081}
+      - LLAMA_API_URL=${DOCKER_LLAMA_API_URL:-http://host.docker.internal:8081}
       - LLAMA_API_KEY=${LLAMA_API_KEY:-embed-secure-key-1122}
       - LLAMA_EMBED_MODE=${LLAMA_EMBED_MODE:-v1}
+      - DANGER_GUIDELINES=${DANGER_GUIDELINES:-}
+      - DANGER_THRESHOLDS=${DANGER_THRESHOLDS:-}
+      - DANGER_THRESHOLD=${DANGER_THRESHOLD:-0.60}
+      - DANGER_KEYWORD_LINKED_THRESHOLD=${DANGER_KEYWORD_LINKED_THRESHOLD:-0.45}
+      - DANGER_KEYWORD_MIN_SAFEGUARD_SCORE=${DANGER_KEYWORD_MIN_SAFEGUARD_SCORE:-0.52}
     depends_on:
       - redis
       - db
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    #networks:
-    #- publish_default
+
+  # 4. FastAPI 웹 서비스
+  web-app:
+    build: .
+    container_name: keyword-web-app
+    restart: always
+    command: ["uvicorn", "web_app:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-ledger_db}
+      - DB_USER=${DB_USER:-ledger_user}
+      - DB_PASSWORD=${DB_PASSWORD:-ledger_pass}
+      - LLAMA_API_URL=${DOCKER_LLAMA_API_URL:-http://host.docker.internal:8081}
+      - LLAMA_API_KEY=${LLAMA_API_KEY:-embed-secure-key-1122}
+      - LLAMA_EMBED_MODE=${LLAMA_EMBED_MODE:-v1}
+      - DANGER_GUIDELINES=${DANGER_GUIDELINES:-}
+      - DANGER_THRESHOLDS=${DANGER_THRESHOLDS:-}
+      - DANGER_THRESHOLD=${DANGER_THRESHOLD:-0.60}
+      - DANGER_KEYWORD_LINKED_THRESHOLD=${DANGER_KEYWORD_LINKED_THRESHOLD:-0.45}
+      - DANGER_KEYWORD_MIN_SAFEGUARD_SCORE=${DANGER_KEYWORD_MIN_SAFEGUARD_SCORE:-0.52}
+    depends_on:
+      - redis
+      - db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 #networks:
   #publish_default

@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS counseling_data (
     text        TEXT        NOT NULL,
     keywords    TEXT,
     status      VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    risk_level  VARCHAR(50) NOT NULL DEFAULT '정상 문의',
     created_at  TIMESTAMP   NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMP   NOT NULL DEFAULT NOW()
 );

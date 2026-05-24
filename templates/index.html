@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Keyword Extraction Prototype</title>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(22, 28, 45, 0.45);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary-glow: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+            --accent-glow: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(79, 70, 229, 0.15) 0%, transparent 40%);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        h1, h2, h3, .brand {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header Style */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-glow {
+            width: 14px;
+            height: 14px;
+            background: var(--primary-glow);
+            border-radius: 50%;
+            box-shadow: 0 0 15px #7c3aed;
+        }
+
+        .brand {
+            font-size: 1.75rem;
+            background: linear-gradient(to right, #ffffff, #a5b4fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .badge-model {
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #a5b4fc;
+            padding: 0.35rem 0.8rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+        }
+
+        /* Layout Grid */
+        .workspace {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 900px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Glassmorphic Panel */
+        .panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            padding: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .panel-title {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 0.75rem;
+        }
+
+        /* Form Components */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: none;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .options-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        select {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.9rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            border: none;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--primary-glow);
+            color: white;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.95;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .btn-accent {
+            background: var(--accent-glow);
+            color: white;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+        }
+
+        .btn-accent:hover {
+            opacity: 0.95;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Results Panel */
+        .result-meta {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .result-meta span strong {
+            color: var(--text-main);
+        }
+
+        .keyword-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .keyword-card {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .keyword-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .keyword-name {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .keyword-score {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #a5b4fc;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: var(--primary-glow);
+            border-radius: 9999px;
+            width: 0%;
+            transition: width 1s cubic-bezier(0.1, 0.8, 0.2, 1);
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 250px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.4;
+        }
+
+        /* DB Logs Table Section */
+        .db-logs-panel {
+            margin-top: 1rem;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            background: rgba(15, 23, 42, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        th {
+            background-color: rgba(15, 23, 42, 0.6);
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        td.text-col {
+            max-width: 220px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-completed {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            animation: pulse 1.5s infinite;
+        }
+
+        .risk-normal {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .risk-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.15);
+        }
+
+        .word-cloud-badge-external-badge {
+            background: rgba(139, 92, 246, 0.15);
+            color: #c084fc;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.15);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        /* Toasts */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #1e293b;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateY(150%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Keyword Level Badges & Sliders */
+        .badge-keyword-normal {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            backdrop-filter: blur(4px);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .badge-keyword-danger {
+            background: rgba(239, 68, 68, 0.12);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            backdrop-filter: blur(4px);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.1);
+        }
+
+        .badge-keyword-external {
+            background: rgba(139, 92, 246, 0.12);
+            color: #c084fc;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            backdrop-filter: blur(4px);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            box-shadow: 0 0 8px rgba(139, 92, 246, 0.1);
+        }
+
+        .keyword-badge-container {
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            align-items: center;
+        }
+
+        .badge-score-pill {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 0.7Gram;
+            padding: 0.05rem 0.25rem;
+            border-radius: 4px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Premium Word Cloud UI Styles */
+        .word-cloud-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.85rem;
+            justify-content: center;
+            align-items: center;
+            padding: 2.5rem 1.5rem;
+            background: rgba(15, 23, 42, 0.35);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            min-height: 250px;
+            position: relative;
+            overflow: visible;
+            margin-top: 1rem;
+        }
+
+        .word-cloud-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.6rem 1.1rem;
+            background: rgba(22, 28, 45, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 9999px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            user-select: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .word-cloud-badge:hover {
+            transform: scale(1.08) translateY(-3px);
+            border-color: rgba(99, 102, 241, 0.6);
+            background: rgba(22, 28, 45, 0.85);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.25);
+        }
+
+        .word-cloud-badge-danger {
+            background: rgba(239, 68, 68, 0.08) !important;
+            border: 1.5px solid rgba(239, 68, 68, 0.6) !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            font-size: 1.15rem !important;
+            padding: 0.75rem 1.4rem !important;
+            animation: float 4s ease-in-out infinite, neonPulse 2s infinite alternate !important;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2) !important;
+        }
+
+        .word-cloud-badge-danger:hover {
+            border-color: rgba(239, 68, 68, 0.95) !important;
+            background: rgba(239, 68, 68, 0.18) !important;
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.45) !important;
+        }
+
+        .word-cloud-badge-external {
+            background: rgba(139, 92, 246, 0.08) !important;
+            border: 1.5px solid rgba(139, 92, 246, 0.6) !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            font-size: 1.15rem !important;
+            padding: 0.75rem 1.4rem !important;
+            animation: float 4s ease-in-out infinite, purplePulse 2s infinite alternate !important;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.2) !important;
+        }
+
+        .word-cloud-badge-external:hover {
+            border-color: rgba(139, 92, 246, 0.95) !important;
+            background: rgba(139, 92, 246, 0.18) !important;
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.45) !important;
+        }
+
+        /* Hover Tooltip / Popover */
+        .word-cloud-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: rgba(15, 23, 42, 0.94) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 1rem;
+            padding: 1rem;
+            width: 240px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            text-align: left;
+        }
+
+        .word-cloud-badge:hover .word-cloud-tooltip {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
+        }
+
+        .tooltip-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .tooltip-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .tooltip-val {
+            color: var(--text-main);
+            font-weight: bold;
+        }
+
+        .tooltip-gauge {
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-top: 0.15rem;
+        }
+
+        .tooltip-gauge-fill {
+            height: 100%;
+            border-radius: 9999px;
+            width: 0%;
+            transition: width 0.6s cubic-bezier(0.1, 0.8, 0.2, 1);
+        }
+
+        .tooltip-gauge-primary .tooltip-gauge-fill {
+            background: linear-gradient(90deg, #7c3aed, #4f46e5);
+        }
+
+        .tooltip-gauge-accent .tooltip-gauge-fill {
+            background: linear-gradient(90deg, #ec4899, #8b5cf6);
+        }
+
+        .tooltip-gauge-danger .tooltip-gauge-fill {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+        }
+
+        /* Floating and Pulsing Animations */
+        @keyframes float {
+            0% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-6px) scale(1.02); }
+            100% { transform: translateY(0px) scale(1); }
+        }
+
+        @keyframes neonPulse {
+            0% {
+                box-shadow: 0 0 10px rgba(239, 68, 68, 0.15), inset 0 0 4px rgba(239, 68, 68, 0.1);
+            }
+            100% {
+                box-shadow: 0 0 22px rgba(239, 68, 68, 0.35), inset 0 0 8px rgba(239, 68, 68, 0.25);
+            }
+        }
+
+        @keyframes purplePulse {
+            0% {
+                box-shadow: 0 0 10px rgba(139, 92, 246, 0.15), inset 0 0 4px rgba(139, 92, 246, 0.1);
+            }
+            100% {
+                box-shadow: 0 0 22px rgba(139, 92, 246, 0.35), inset 0 0 8px rgba(139, 92, 246, 0.25);
+            }
+        }
+
+        /* Collapsible settings styles */
+        .settings-drawer {
+            margin-top: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            background: rgba(15, 23, 42, 0.3);
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .settings-drawer[open] {
+            background: rgba(15, 23, 42, 0.5);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        .settings-drawer summary {
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #a5b4fc;
+            outline: none;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .settings-content {
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.6rem 0.8rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .slider-row input[type="range"] {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+        .slider-row input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #a5b4fc;
+            cursor: pointer;
+            box-shadow: 0 0 6px #7c3aed;
+            transition: transform 0.1s ease;
+        }
+        .slider-row input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
+        }
+        .slider-value {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #a5b4fc;
+            width: 2.2rem;
+            text-align: right;
+            font-family: 'Outfit', sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="logo-area">
+            <div class="logo-glow"></div>
+            <span class="brand">AI Keyword Extractor</span>
+        </div>
+        <span class="badge-model">MODEL: BGE-M3 (llama.cpp)</span>
+    </header>
+
+    <div class="workspace">
+        <!-- Left Column: Input Panel -->
+        <div class="panel">
+            <div class="panel-title">
+                📝 상담 본문 분석 입력
+            </div>
+            
+            <div class="form-group">
+                <label for="text-input">분석할 텍스트 입력</label>
+                <textarea id="text-input" placeholder="이곳에 분석하고 싶으신 상담 데이터나 문서 본문을 입력해 주세요...&#10;&#10;예) 배송이 계속 지연되고 있습니다. 소비자원에 민원을 넣기 전에 즉각 환불 조치 바랍니다."></textarea>
+            </div>
+
+            <div class="options-row">
+                <div class="form-group">
+                    <label for="ngram-select">N-gram (단어 복합수)</label>
+                    <select id="ngram-select">
+                        <option value="1-1">1단어 키워드 (1-1)</option>
+                        <option value="1-2">1~2단어 키워드 (1-2)</option>
+                        <option value="1-3" selected>1~3단어 복합 구문 (1-3)</option>
+                        <option value="2-3">2~3단어 위주 (2-3)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="topn-select">추출 개수 (Top N)</label>
+                    <select id="topn-select">
+                        <option value="3">상위 3개 키워드</option>
+                        <option value="5">상위 5개 키워드</option>
+                        <option value="8" selected>상위 8개 키워드</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Collapsible Settings Panel -->
+            <details class="settings-drawer" id="settings-panel">
+                <summary>
+                    ⚙️ 세부 위험 임계값 실시간 튜닝 (Threshold Settings)
+                </summary>
+                <div class="settings-content">
+                    <div id="threshold-sliders-container">
+                        <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 1rem;">
+                            임계값 데이터를 불러오는 중...
+                        </div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem;">
+                        <span>* 실시간 분석 시 개별 임계값이 즉각 적용됩니다.</span>
+                        <button class="btn" style="flex: none; padding: 0.25rem 0.6rem; font-size: 0.75rem; background: rgba(255, 255, 255, 0.08); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer;" onclick="resetSliders(event)">초기화</button>
+                    </div>
+                </div>
+            </details>
+
+            <div class="button-group">
+                <button class="btn btn-primary" id="btn-sync" onclick="runSyncExtraction()">
+                    <span class="spinner" id="spinner-sync"></span>
+                    ⚡ 실시간 즉시 분석
+                </button>
+                <button class="btn btn-accent" id="btn-async" onclick="runAsyncQueue()">
+                    <span class="spinner" id="spinner-async"></span>
+                    📥 Celery 큐 비동기 분석
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Column: Results Panel -->
+        <div class="panel">
+            <div class="panel-title">
+                📊 키워드 분석 결과
+            </div>
+            
+            <div id="results-area" style="display: none;">
+                <div class="result-meta">
+                    <span>소요 시간: <strong id="elapsed-time">0</strong> ms</span>
+                    <span>방식: <strong id="run-mode">동기식</strong></span>
+                </div>
+                <div class="result-meta" style="margin-top: -1rem; margin-bottom: 1.5rem; justify-content: flex-start; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span>위험 이슈:</span>
+                        <span id="result-risk-badge" class="status-badge">정상 문의</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span>대외 압박 이슈:</span>
+                        <span id="result-external-badge" class="status-badge">정상 문의</span>
+                    </div>
+                </div>
+                
+                <div class="keyword-list" id="keyword-list">
+                    <!-- Javascript가 여기에 카드 생성 -->
+                </div>
+            </div>
+
+            <div class="empty-state" id="results-empty">
+                <div class="empty-icon">🔍</div>
+                <p>본문을 작성하고 분석 버튼을 눌러주세요.</p>
+                <p style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--text-muted)">
+                    실시간 즉시 분석은 결과를 0.1초 만에 반환하며,<br>
+                    Celery 비동기 분석은 데이터베이스 가동 시나리오를 시뮬레이션합니다.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Section: DB Live Logs -->
+    <div class="panel db-logs-panel">
+        <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>🗄️ PostgreSQL 데이터베이스 모니터링 (`counseling_data`)</span>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <button id="btn-reanalyze-all" class="btn btn-primary" style="flex: none; padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 500;" onclick="triggerReanalysisAll()">
+                    🔄 전체 재분석
+                </button>
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">* 3초마다 자동 갱신됨</span>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 7%">ID</th>
+                        <th style="width: 30%">상담 내용</th>
+                        <th style="width: 20%">추출된 키워드</th>
+                        <th style="width: 12%; text-align: center;">위험이슈 판별</th>
+                        <th style="width: 12%; text-align: center;">대외이슈 판별</th>
+                        <th style="width: 6%; text-align: center;">상태</th>
+                        <th style="width: 6%">시간</th>
+                        <th style="width: 7%; text-align: center;">작업</th>
+                    </tr>
+                </thead>
+                <tbody id="db-logs-body">
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                            데이터를 불러오는 중입니다...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast" id="toast-msg">
+    <div style="font-weight: 600; color: white;" id="toast-title">성공</div>
+    <div style="font-size: 0.85rem; color: var(--text-muted);" id="toast-body">알림 메시지</div>
+</div>
+
+<script>
+    // 전역 변수: 기본 및 활성 임계값
+    let defaultThresholds = {};
+    let activeThresholds = {};
+    let fallbackThreshold = 0.60;
+    let defaultLinkedThreshold = 0.45;
+    let activeLinkedThreshold = 0.45;
+    let defaultMinSafeguardScore = 0.52;
+    let activeMinSafeguardScore = 0.52;
+
+    // 1. 초기 로드 시 DB 기록 갱신 및 설정값 로드 시작
+    document.addEventListener("DOMContentLoaded", async () => {
+        await loadSettings();
+        refreshHistory();
+        // 3초 간격 자동 모니터링 갱신
+        setInterval(refreshHistory, 3000);
+    });
+
+    // 서버 임계값 설정 로드
+    async function loadSettings() {
+        try {
+            const resp = await fetch("/api/settings");
+            if (resp.ok) {
+                const data = await resp.json();
+                defaultThresholds = { ...data.default_thresholds };
+                activeThresholds = { ...data.default_thresholds };
+                fallbackThreshold = data.fallback_threshold;
+                defaultLinkedThreshold = data.default_linked_threshold !== undefined ? data.default_linked_threshold : 0.45;
+                activeLinkedThreshold = defaultLinkedThreshold;
+                defaultMinSafeguardScore = data.default_min_safeguard_score !== undefined ? data.default_min_safeguard_score : 0.52;
+                activeMinSafeguardScore = defaultMinSafeguardScore;
+                renderSliders();
+            }
+        } catch (e) {
+            console.error("설정 로드 실패", e);
+        }
+    }
+
+    // 임계값 슬라이더 렌더링
+    function renderSliders() {
+        const container = document.getElementById("threshold-sliders-container");
+        container.innerHTML = "";
+        
+        // 1. 일반 위험 카테고리 슬라이더들 렌더링
+        Object.keys(activeThresholds).forEach(category => {
+            const val = activeThresholds[category];
+            const group = document.createElement("div");
+            group.className = "slider-group";
+            group.innerHTML = `
+                <div class="slider-header">
+                    <span>${category}</span>
+                </div>
+                <div class="slider-row">
+                    <input type="range" min="0.30" max="0.95" step="0.01" value="${val}" 
+                        oninput="updateThresholdValue('${category}', this.value)">
+                    <span class="slider-value" id="val-${category}">${val.toFixed(2)}</span>
+                </div>
+            `;
+            container.appendChild(group);
+        });
+
+        // 2. 연관 키워드 완화 임계값 슬라이더 추가 (구분선과 함께)
+        const linkedGroup = document.createElement("div");
+        linkedGroup.className = "slider-group";
+        linkedGroup.style.borderTop = "1px solid rgba(255, 255, 255, 0.1)";
+        linkedGroup.style.marginTop = "0.5rem";
+        linkedGroup.style.paddingTop = "0.75rem";
+        linkedGroup.innerHTML = `
+            <div class="slider-header" style="color: #60a5fa; display: flex; align-items: center; justify-content: space-between;">
+                <span>🔗 연관 키워드 매핑 완화 임계값</span>
+            </div>
+            <div class="slider-row">
+                <input type="range" min="0.30" max="0.80" step="0.01" value="${activeLinkedThreshold}" 
+                    oninput="updateLinkedThresholdValue(this.value)">
+                <span class="slider-value" id="val-linked-threshold" style="color: #60a5fa; width: 2.2rem; text-align: right;">${activeLinkedThreshold.toFixed(2)}</span>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
+                * 본문 판정 카테고리와 키워드의 최고 매칭 카테고리가 일치할 경우 적용되는 완화 임계값입니다.
+            </div>
+        `;
+        container.appendChild(linkedGroup);
+
+        // 3. 안전 제한 임계값 (Safeguard Threshold) 슬라이더 추가
+        const safeguardGroup = document.createElement("div");
+        safeguardGroup.className = "slider-group";
+        safeguardGroup.style.borderTop = "1px solid rgba(255, 255, 255, 0.1)";
+        safeguardGroup.style.marginTop = "0.5rem";
+        safeguardGroup.style.paddingTop = "0.75rem";
+        safeguardGroup.innerHTML = `
+            <div class="slider-header" style="color: #ec4899; display: flex; align-items: center; justify-content: space-between;">
+                <span>🛡️ 안전 제한 임계값 (Safeguard Threshold)</span>
+            </div>
+            <div class="slider-row">
+                <input type="range" min="0.30" max="0.80" step="0.01" value="${activeMinSafeguardScore}" 
+                    oninput="updateMinSafeguardValue(this.value)">
+                <span class="slider-value" id="val-min-safeguard" style="color: #ec4899; width: 2.2rem; text-align: right;">${activeMinSafeguardScore.toFixed(2)}</span>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
+                * 단일 키워드의 유사도가 이 점수 미만일 경우 연관 매핑 조건(완화 임계값)을 충족하더라도 안전하게 '정상'으로 분류합니다.
+            </div>
+        `;
+        container.appendChild(safeguardGroup);
+    }
+
+    // 슬라이더 값 변경 시 실시간 반영
+    function updateThresholdValue(category, val) {
+        const parsedVal = parseFloat(val);
+        activeThresholds[category] = parsedVal;
+        document.getElementById(`val-${category}`).innerText = parsedVal.toFixed(2);
+    }
+
+    // 연관 임계값 변경 시 실시간 반영
+    function updateLinkedThresholdValue(val) {
+        const parsedVal = parseFloat(val);
+        activeLinkedThreshold = parsedVal;
+        document.getElementById("val-linked-threshold").innerText = parsedVal.toFixed(2);
+    }
+
+    // 안전 제한 임계값 변경 시 실시간 반영
+    function updateMinSafeguardValue(val) {
+        const parsedVal = parseFloat(val);
+        activeMinSafeguardScore = parsedVal;
+        document.getElementById("val-min-safeguard").innerText = parsedVal.toFixed(2);
+    }
+
+    // 임계값 초기화
+    function resetSliders(event) {
+        if (event) event.preventDefault();
+        activeThresholds = { ...defaultThresholds };
+        activeLinkedThreshold = defaultLinkedThreshold;
+        activeMinSafeguardScore = defaultMinSafeguardScore;
+        renderSliders();
+        showToast("⚙️ 초기화 완료", "기본 임계값으로 재설정되었습니다.", true);
+    }
+
+    // 활성 임계값 반환
+    function getActiveThresholds() {
+        return activeThresholds;
+    }
+
+    // 2. 토스트 팝업 알림 함수
+    function showToast(title, message, isSuccess = true) {
+        const toast = document.getElementById("toast-msg");
+        const tTitle = document.getElementById("toast-title");
+        const tBody = document.getElementById("toast-body");
+        
+        tTitle.innerText = title;
+        tBody.innerText = message;
+        toast.style.borderLeftColor = isSuccess ? "#10b981" : "#ef4444";
+        
+        toast.classList.add("show");
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 3500);
+    }
+
+    // 3. 동기식 (Sync) 실시간 분석 수행
+    async function runSyncExtraction() {
+        const text = document.getElementById("text-input").value;
+        const ngrams = document.getElementById("ngram-select").value.split("-");
+        const topN = parseInt(document.getElementById("topn-select").value);
+        
+        if (!text.trim()) {
+            alert("분석할 텍스트를 입력해 주세요!");
+            return;
+        }
+
+        // UI 대기 상태 전환
+        const btn = document.getElementById("btn-sync");
+        const spinner = document.getElementById("spinner-sync");
+        btn.disabled = true;
+        spinner.style.display = "inline-block";
+
+        try {
+            const response = await fetch("/api/extract/sync", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    text: text,
+                    ngram_min: parseInt(ngrams[0]),
+                    ngram_max: parseInt(ngrams[1]),
+                    top_n: topN,
+                    thresholds: getActiveThresholds(),  // 커스텀 임계값 주입
+                    linked_threshold: activeLinkedThreshold, // 연관 임계값 주입
+                    min_safeguard_score: activeMinSafeguardScore // 안전 제한 임계값 주입
+                })
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                renderResults(data.keywords, data.elapsed_ms, "실시간 동기 분석 (Sync)", data.risk_level, data.external_issue);
+                showToast("⚡ 분석 완료", `소요 시간: ${data.elapsed_ms}ms`, true);
+            } else {
+                showToast("❌ 에러 발생", data.detail || "분석 실패", false);
+            }
+        } catch (error) {
+            showToast("❌ 네트워크 오류", "서버와 통신할 수 없습니다.", false);
+        } finally {
+            btn.disabled = false;
+            spinner.style.display = "none";
+        }
+    }
+
+    // 4. 비동기식 (Async) Celery 작업 요청
+    async function runAsyncQueue() {
+        const text = document.getElementById("text-input").value;
+        
+        if (!text.trim()) {
+            alert("분석할 텍스트를 입력해 주세요!");
+            return;
+        }
+
+        const btn = document.getElementById("btn-async");
+        const spinner = document.getElementById("spinner-async");
+        btn.disabled = true;
+        spinner.style.display = "inline-block";
+
+        try {
+            const response = await fetch("/api/extract/async", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    text: text,
+                    thresholds: getActiveThresholds(),
+                    linked_threshold: activeLinkedThreshold,
+                    min_safeguard_score: activeMinSafeguardScore
+                })
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                showToast("📥 Celery 큐 등록", `작업 ID: ${data.task_id.substring(0, 8)}...`, true);
+                document.getElementById("text-input").value = ""; // 입력창 초기화
+                refreshHistory();
+            } else {
+                showToast("❌ 등록 실패", data.detail || "작업 요청 오류", false);
+            }
+        } catch (error) {
+            showToast("❌ 네트워크 오류", "서버와 통신할 수 없습니다.", false);
+        } finally {
+            btn.disabled = false;
+            spinner.style.display = "none";
+        }
+    }
+
+    // 5. 우측 분석 결과 카드 렌더링 (워드 클라우드 형태)
+    function renderResults(keywords, elapsedMs, modeName, riskLevel, externalIssue) {
+        const emptyState = document.getElementById("results-empty");
+        const resultsArea = document.getElementById("results-area");
+        const kwList = document.getElementById("keyword-list");
+        const elTime = document.getElementById("elapsed-time");
+        const runMode = document.getElementById("run-mode");
+        
+        const riskBadge = document.getElementById("result-risk-badge");
+        const externalBadge = document.getElementById("result-external-badge");
+
+        emptyState.style.display = "none";
+        resultsArea.style.display = "block";
+        kwList.innerHTML = "";
+        
+        kwList.className = "word-cloud-container";
+        
+        elTime.innerText = elapsedMs;
+        runMode.innerText = modeName;
+
+        // 위험이슈 배지 업데이트
+        if (riskLevel) {
+            const isNormal = riskLevel === "정상 문의";
+            riskBadge.innerText = (isNormal ? "🟢 " : "⚠️ ") + riskLevel;
+            riskBadge.className = "status-badge " + (isNormal ? "risk-normal" : "risk-danger");
+        }
+
+        // 대외 압박 이슈 배지 업데이트
+        if (externalIssue) {
+            const isNormal = externalIssue === "정상 문의";
+            externalBadge.innerText = (isNormal ? "🟢 " : "⚡ ") + externalIssue;
+            externalBadge.className = "status-badge " + (isNormal ? "status-completed" : "word-cloud-badge-external-badge");
+        }
+
+        keywords.forEach((item, index) => {
+            const badge = document.createElement("div");
+            
+            // 키워드별 매칭 여부에 따라 스타일 적용
+            const isNormalWord = item.risk_category === "정상";
+            const isExternalWord = ["법적조치", "언론제보", "이슈제기"].includes(item.risk_category);
+            
+            let badgeClass = "word-cloud-badge";
+            let badgeIcon = "🟢";
+            let gaugeClass = "tooltip-gauge-primary";
+            
+            if (isExternalWord) {
+                badgeClass += " word-cloud-badge-external";
+                badgeIcon = "⚡";
+                gaugeClass = "tooltip-gauge-accent";
+            } else if (!isNormalWord) {
+                badgeClass += " word-cloud-badge-danger";
+                badgeIcon = "⚠️";
+                gaugeClass = "tooltip-gauge-danger";
+            }
+            
+            badge.className = badgeClass;
+            
+            // 본문 연관성 및 위험 부합도 비율 환산
+            const contextRelevance = Math.round(item.score * 100);
+            const riskFit = Math.round(item.risk_score * 100);
+            
+            badge.innerHTML = `
+                <span>${badgeIcon} ${item.word}</span>
+                
+                <!-- Hover Popover Tooltip -->
+                <div class="word-cloud-tooltip">
+                    <div style="font-weight: 700; color: #ffffff; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.35rem; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center;">
+                        <span>${item.word}</span>
+                        <span style="font-size: 0.7rem; background: rgba(255,255,255,0.08); padding: 0.1rem 0.3rem; border-radius: 4px; color: ${isNormalWord ? '#34d399' : (isExternalWord ? '#c084fc' : '#f87171')}">${item.risk_category}</span>
+                    </div>
+                    
+                    <!-- 지표 1: 본문 연관성 -->
+                    <div class="tooltip-row">
+                        <div class="tooltip-label">
+                            <span>본문 연관성</span>
+                            <span class="tooltip-val" style="color: #a5b4fc;">${contextRelevance}%</span>
+                        </div>
+                        <div class="tooltip-gauge tooltip-gauge-primary">
+                            <div class="tooltip-gauge-fill" data-width="${contextRelevance}%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- 지표 2: 위험 부합도 -->
+                    <div class="tooltip-row">
+                        <div class="tooltip-label">
+                            <span>위험 부합도</span>
+                            <span class="tooltip-val" style="color: ${isNormalWord ? '#34d399' : (isExternalWord ? '#c084fc' : '#f87171')};">${riskFit}%</span>
+                        </div>
+                        <div class="tooltip-gauge ${gaugeClass}">
+                            <div class="tooltip-gauge-fill" data-width="${riskFit}%"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            kwList.appendChild(badge);
+            
+            badge.addEventListener("mouseenter", () => {
+                const fills = badge.querySelectorAll(".tooltip-gauge-fill");
+                fills.forEach(fill => {
+                    const targetWidth = fill.getAttribute("data-width");
+                    fill.style.width = targetWidth;
+                });
+            });
+            
+            badge.addEventListener("mouseleave", () => {
+                const fills = badge.querySelectorAll(".tooltip-gauge-fill");
+                fills.forEach(fill => {
+                    fill.style.width = "0%";
+                });
+            });
+        });
+    }
+
+    // 5.5. 건별 재분석 요청 함수
+    async function triggerReanalysis(counselingId, buttonEl) {
+        // 버튼 로딩 상태 전환
+        const originalHTML = buttonEl.innerHTML;
+        buttonEl.disabled = true;
+        buttonEl.innerHTML = "⏳ 진행중";
+        buttonEl.style.opacity = "0.7";
+        
+        try {
+            const response = await fetch(`/api/reanalyze/${counselingId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            });
+            
+            const data = await response.json();
+            if (response.ok) {
+                showToast("🔄 재분석 완료", `ID ${counselingId}번 상담 내역이 성공적으로 재분석되었습니다.`, true);
+                
+                // 오른쪽에 있는 결과 보기 영역에 이 재분석된 최신 데이터 자동 연동 시각화
+                renderResults(data.keywords, 0, "재분석 완료", data.risk_level, data.external_issue);
+                
+                // 하단 모니터링 테이블 갱신
+                refreshHistory();
+            } else {
+                showToast("❌ 재분석 실패", data.detail || "분석 오류 발생", false);
+            }
+        } catch (error) {
+            showToast("❌ 네트워크 오류", "서버와 통신할 수 없습니다.", false);
+        } finally {
+            buttonEl.disabled = false;
+            buttonEl.innerHTML = originalHTML;
+            buttonEl.style.opacity = "1";
+        }
+    }
+
+    // 5.6. 전체 재분석 요청 함수
+    async function triggerReanalysisAll() {
+        const buttonEl = document.getElementById("btn-reanalyze-all");
+        if (!buttonEl) return;
+        
+        if (!confirm("DB에 저장된 모든 상담 내역을 현재 기준 임계치와 2D 안전 매트릭스 로직으로 전체 재분석하시겠습니까?")) {
+            return;
+        }
+
+        const originalHTML = buttonEl.innerHTML;
+        buttonEl.disabled = true;
+        buttonEl.innerHTML = "⏳ 전체 재분석 중...";
+        buttonEl.style.opacity = "0.7";
+        
+        try {
+            const response = await fetch("/api/reanalyze-all", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            });
+            
+            const data = await response.json();
+            if (response.ok) {
+                showToast("🔄 전체 재분석 완료", data.message || `성공적으로 재분석되었습니다.`, true);
+                refreshHistory();
+            } else {
+                showToast("❌ 전체 재분석 실패", data.detail || "분석 오류 발생", false);
+            }
+        } catch (error) {
+            showToast("❌ 네트워크 오류", "서버와 통신할 수 없습니다.", false);
+        } finally {
+            buttonEl.disabled = false;
+            buttonEl.innerHTML = originalHTML;
+            buttonEl.style.opacity = "1";
+        }
+    }
+
+
+    // 6. DB 히스토리 갱신 API 호출 및 렌더링
+    async function refreshHistory() {
+        try {
+            const response = await fetch("/api/history");
+            if (!response.ok) return;
+            
+            const logs = await response.json();
+            const tbody = document.getElementById("db-logs-body");
+            
+            if (logs.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                            등록된 상담 기록이 없습니다.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = "";
+            logs.forEach(log => {
+                const tr = document.createElement("tr");
+                
+                const statusClass = log.status.toLowerCase() === "completed" ? "status-completed" : "status-pending";
+                const statusText = log.status === "COMPLETED" ? "완료" : "대기중";
+                
+                // 키워드 영역 스마트 파싱 (JSON과 기존 콤마분리 텍스트 호환성 지원)
+                let keywordsHTML = "";
+                if (log.keywords) {
+                    try {
+                        const parsed = JSON.parse(log.keywords);
+                        if (Array.isArray(parsed)) {
+                            keywordsHTML = `<div class="keyword-badge-container">`;
+                            parsed.forEach(item => {
+                                const isNormalWord = item.risk_category === "정상";
+                                const isExternalWord = ["법적조치", "언론제보", "이슈제기"].includes(item.risk_category);
+                                
+                                let wordBadgeClass = "badge-keyword-normal";
+                                if (isExternalWord) {
+                                    wordBadgeClass = "badge-keyword-external";
+                                } else if (!isNormalWord) {
+                                    wordBadgeClass = "badge-keyword-danger";
+                                }
+                                
+                                keywordsHTML += `
+                                    <span class="${wordBadgeClass}" style="font-size: 0.7rem; padding: 0.15rem 0.35rem;" 
+                                          title="추출점수: ${item.score}, 유사도점수: ${item.risk_score}">
+                                        ${item.word}
+                                        <span class="badge-score-pill" style="font-size: 0.6rem; padding: 0.02rem 0.15rem; margin-left: 0.25rem;">
+                                            ${item.risk_category}
+                                        </span>
+                                    </span>
+                                `;
+                            });
+                            keywordsHTML += `</div>`;
+                        } else {
+                            keywordsHTML = log.keywords;
+                        }
+                    } catch(e) {
+                        keywordsHTML = log.keywords; 
+                    }
+                } else {
+                    keywordsHTML = `<span style="color: var(--text-muted); font-style: italic;">추출 중...</span>`;
+                }
+                
+                // 위험이슈
+                const isNormal = log.risk_level === "정상 문의" || !log.risk_level;
+                const riskClass = isNormal ? "risk-normal" : "risk-danger";
+                const riskIcon = isNormal ? "🟢 " : "⚠️ ";
+                const riskText = log.risk_level ? log.risk_level : "정상 문의";
+
+                // 외부이슈
+                const isExtNormal = log.external_issue === "정상 문의" || !log.external_issue;
+                const extClass = isExtNormal ? "status-completed" : "word-cloud-badge-external-badge";
+                const extIcon = isExtNormal ? "🟢 " : "⚡ ";
+                const extText = log.external_issue ? log.external_issue : "정상 문의";
+
+                // 재분석 버튼
+                const actionButton = `
+                    <button class="btn" style="flex: none; padding: 0.25rem 0.5rem; font-size: 0.75rem; background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.2rem;" onclick="triggerReanalysis(${log.id}, this)">
+                        🔄 재분석
+                    </button>
+                `;
+
+                tr.innerHTML = `
+                    <td>${log.id}</td>
+                    <td class="text-col" title="${log.text}">${log.text}</td>
+                    <td>${keywordsHTML}</td>
+                    <td style="text-align: center;">
+                        <span class="status-badge ${riskClass}">${riskIcon}${riskText}</span>
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="status-badge ${extClass}">${extIcon}${extText}</span>
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </td>
+                    <td style="color: var(--text-muted); font-size: 0.8rem;">${log.updated_at ? log.updated_at.substring(11, 19) : ""}</td>
+                    <td style="text-align: center;">${actionButton}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (error) {
+            console.error("히스토리 갱신 실패", error);
+        }
+    }
+</script>
+
+</body>
+</html>

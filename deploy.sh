@@ -29,7 +29,7 @@ until docker compose exec -T db pg_isready -U ledger_user -d ledger_db > /dev/nu
 done
 
 echo "✅ DB 연결 성공. schema.sql 스키마 적용 (테이블이 없을 때만 생성)..."
-docker compose exec -T db psql -U ledger_user -d ledger_db -f /app/schema.sql
+docker compose exec -T db psql -U ledger_user -d ledger_db < schema.sql
 
 # 4. 최종 프로세스 구동 상태 확인
 echo "👉 [4/4] 서비스 가동 상태 확인..."
@@ -37,6 +37,7 @@ echo "========================================="
 docker compose ps
 echo "========================================="
 echo "🎉 모든 서비스가 성공적으로 재기동되었습니다!"
+echo "👉 웹 프로토타입 주소: http://localhost:8000"
 echo "Celery 로그를 확인하려면 아래 명령어를 입력하세요:"
 echo "👉 docker compose logs -f celery-worker"
 echo "========================================="
