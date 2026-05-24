@@ -24,9 +24,22 @@ def reanalyze_all():
             print(f"\n[Processing ID {c_id}]")
             print(f" Text snippet: {text[:40].replace(chr(10), ' ')}...")
             
-            # 1. Run 2D classification
-            risk_level, sim_score = classifier.classify_danger(text)
-            external_issue, ext_score = classifier.classify_external(text)
+            # 1. Run 3D classification
+            dangers = classifier.classify_danger(text)
+            externals = classifier.classify_external(text)
+            urgency_level = classifier.classify_urgency(text)
+            
+            risk_level = dangers[0][0]
+            sim_score = dangers[0][1]
+            
+            external_issue = externals[0][0]
+            ext_score = externals[0][1]
+            
+            detected_json = {
+                "danger": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(dangers)],
+                "external": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(externals)]
+            }
+            detected_categories_str = json.dumps(detected_json, ensure_ascii=False)
             
             # 2. Extract keywords with dual guides (top 8, 1-3 gram)
             weight_coeff = 0.35
@@ -60,10 +73,10 @@ def reanalyze_all():
             # 4. Update the DB row
             cur.execute("""
                 UPDATE counseling_data 
-                SET keywords = %s, status = 'COMPLETED', risk_level = %s, external_issue = %s, updated_at = NOW() 
+                SET keywords = %s, status = 'COMPLETED', risk_level = %s, external_issue = %s, urgency_level = %s, detected_categories = %s, updated_at = NOW() 
                 WHERE id = %s;
-            """, (keywords_json_str, risk_level, external_issue, c_id))
-            print(f" -> Updated! Danger: '{risk_level}', External: '{external_issue}'")
+            """, (keywords_json_str, risk_level, external_issue, urgency_level, detected_categories_str, c_id))
+            print(f" -> Updated! Danger: '{risk_level}', External: '{external_issue}', Urgency: '{urgency_level}'")
             
         conn.commit()
         print("\n==================================================")

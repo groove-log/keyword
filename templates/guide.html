@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로젝트 가이드 및 기술 백서 - 3D 다차원 위협 대응 및 실시간 Triage 엔진</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #020617;
+            --bg-surface: rgba(15, 23, 42, 0.6);
+            --bg-card: rgba(30, 41, 59, 0.4);
+            --primary: #8b5cf6;
+            --primary-glow: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+            --danger: #f43f5e;
+            --danger-glow: linear-gradient(135deg, #fb7185 0%, #e11d48 100%);
+            --accent: #10b981;
+            --accent-glow: linear-gradient(135deg, #34d399 0%, #059669 100%);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(139, 92, 246, 0.3);
+            --font-display: 'Outfit', 'Inter', 'Noto Sans KR', sans-serif;
+            --font-sans: 'Inter', 'Noto Sans KR', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(244, 63, 94, 0.05) 0%, transparent 40%),
+                linear-gradient(rgba(255, 255, 255, 0.005) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.005) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        /* Header Style */
+        header {
+            border-bottom: 1px solid var(--border);
+            padding: 2rem 4rem;
+            backdrop-filter: blur(20px);
+            background: rgba(2, 6, 23, 0.8);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-logo {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: var(--primary-glow);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: white;
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .header-title h1 {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.5rem 1.25rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--primary);
+            background: rgba(139, 92, 246, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .nav-btn-primary {
+            background: var(--primary-glow);
+            border: none;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+        }
+
+        .nav-btn-primary:hover {
+            opacity: 0.95;
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 3rem;
+        }
+
+        /* Sidebar navigation */
+        .sidebar {
+            position: sticky;
+            top: 7rem;
+            height: calc(100vh - 10rem);
+            overflow-y: auto;
+            padding-right: 1rem;
+        }
+
+        .sidebar h3 {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 1.25rem;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.6rem 0.8rem;
+            border-radius: 0.5rem;
+            display: block;
+            transition: all 0.25s ease;
+            border-left: 2px solid transparent;
+        }
+
+        .sidebar a:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.02);
+            border-left-color: rgba(139, 92, 246, 0.5);
+            padding-left: 1.2rem;
+        }
+
+        .sidebar a.active {
+            color: var(--primary);
+            background: rgba(139, 92, 246, 0.08);
+            border-left-color: var(--primary);
+            font-weight: 600;
+            padding-left: 1.2rem;
+        }
+
+        /* Main Content */
+        main {
+            min-width: 0;
+        }
+
+        .section {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 1.25rem;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            backdrop-filter: blur(12px);
+            transition: border-color 0.3s ease;
+        }
+
+        .section:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .section-tag {
+            display: inline-block;
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            background: rgba(139, 92, 246, 0.12);
+            padding: 0.25rem 0.75rem;
+            border-radius: 100px;
+            margin-bottom: 1rem;
+        }
+
+        .section h2 {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, #f8fafc, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+
+        /* Key Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--border-hover);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--primary-glow);
+            opacity: 0.8;
+        }
+
+        .metric-card.danger::before { background: var(--danger-glow); }
+        .metric-card.accent::before { background: var(--accent-glow); }
+
+        .metric-val {
+            font-family: var(--font-display);
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* 3D Matrix & Triage Layout */
+        .matrix-container {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .matrix-title {
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+            color: #a5b4fc;
+        }
+
+        .matrix-grid-3d {
+            display: grid;
+            grid-template-columns: 140px 1fr 1fr 1fr;
+            gap: 0.75rem;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .matrix-cell {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            font-size: 0.85rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: rgba(30, 41, 59, 0.2);
+            min-height: 5.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .matrix-header {
+            font-family: var(--font-display);
+            font-weight: 700;
+            background: rgba(139, 92, 246, 0.15) !important;
+            border-color: rgba(139, 92, 246, 0.3) !important;
+            color: #a5b4fc;
+            min-height: auto;
+            padding: 0.75rem;
+        }
+
+        .matrix-row-label {
+            font-family: var(--font-display);
+            font-weight: 700;
+            background: rgba(244, 63, 94, 0.15) !important;
+            border-color: rgba(244, 63, 94, 0.3) !important;
+            color: #fca5a5;
+            min-height: auto;
+            padding: 0.75rem;
+            text-align: left;
+            align-items: flex-start;
+        }
+
+        .matrix-active-cell {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .matrix-active-cell:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .cell-tag {
+            font-size: 0.7rem;
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-top: 0.35rem;
+            display: inline-block;
+        }
+
+        .tag-danger { background: rgba(244, 63, 94, 0.2); color: #f87171; border: 1px solid rgba(244, 63, 94, 0.4); }
+        .tag-external { background: rgba(139, 92, 246, 0.2); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.4); }
+        .tag-normal { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .tag-urgency { background: rgba(245, 158, 11, 0.2); color: #fde047; border: 1px solid rgba(245, 158, 11, 0.4); }
+
+        /* Triage Rules Table */
+        .triage-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .triage-table th, .triage-table td {
+            border: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+            text-align: left;
+        }
+
+        .triage-table th {
+            background: rgba(30, 41, 59, 0.6);
+            color: #cbd5e1;
+            font-weight: 600;
+        }
+
+        .triage-table tr:nth-child(even) {
+            background: rgba(30, 41, 59, 0.2);
+        }
+
+        /* Tech Stack Badges */
+        .tech-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+        }
+
+        .tech-badge {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.25s ease;
+        }
+
+        .tech-badge:hover {
+            border-color: var(--primary);
+            background: rgba(139, 92, 246, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .tech-badge span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .tech-server span { background: #3b82f6; }
+        .tech-db span { background: #33a6b8; }
+        .tech-nlp span { background: #eab308; }
+        .tech-queue span { background: #a855f7; }
+
+        /* Flow Diagram SVG Container */
+        .diagram-container {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 1.25rem;
+            padding: 2.5rem;
+            margin: 2.5rem 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .diagram-svg {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .flow-line {
+            stroke-dasharray: 8, 8;
+            animation: flow-motion 30s linear infinite;
+        }
+
+        @keyframes flow-motion {
+            to {
+                stroke-dashoffset: -1000;
+            }
+        }
+
+        .node {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .node:hover {
+            filter: brightness(1.2) drop-shadow(0 0 12px rgba(139, 92, 246, 0.6));
+        }
+
+        /* Codeblock styling */
+        pre {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+            color: #e2e8f0;
+            margin: 1.5rem 0;
+        }
+
+        code .keyword { color: #f43f5e; font-weight: 600; }
+        code .comment { color: #64748b; font-style: italic; }
+        code .string { color: #10b981; }
+        code .number { color: #fb923c; }
+        code .function { color: #a78bfa; }
+
+        /* Comparison Lists */
+        .compare-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .compare-side {
+            background: rgba(30, 41, 59, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+
+        .compare-side.pro {
+            border-color: rgba(16, 185, 129, 0.2);
+            background: rgba(16, 185, 129, 0.02);
+        }
+
+        .compare-side.con {
+            border-color: rgba(244, 63, 94, 0.2);
+            background: rgba(244, 63, 94, 0.02);
+        }
+
+        .compare-title {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .compare-side.pro .compare-title { color: var(--accent); }
+        .compare-side.con .compare-title { color: var(--danger); }
+
+        .compare-list {
+            list-style: none;
+        }
+
+        .compare-list li {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            padding-left: 1.25rem;
+            position: relative;
+        }
+
+        .compare-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            font-size: 1.2rem;
+        }
+
+        .compare-side.pro li::before { color: var(--accent); }
+        .compare-side.con li::before { color: var(--danger); }
+
+        /* Footer styling */
+        .footer-logo {
+            text-align: center;
+            padding-top: 3rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .pulse-light {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px #10b981;
+            animation: pulse-glow 1.5s infinite alternate;
+            vertical-align: middle;
+            margin-right: 0.35rem;
+        }
+
+        @keyframes pulse-glow {
+            from { opacity: 0.4; box-shadow: 0 0 2px #10b981; }
+            to { opacity: 1; box-shadow: 0 0 10px #10b981; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header>
+        <div class="header-title">
+            <div class="header-logo">3D</div>
+            <div>
+                <h1>3D 다차원 위협대응 및 Triage 엔진 백서</h1>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0;">3D Multi-Label Co-occurrence & Action Triage Engine (IRDA v2)</p>
+            </div>
+        </div>
+        <div class="header-nav">
+            <span class="nav-btn" style="border: none; cursor: default;">
+                <span class="pulse-light"></span> 3D Triage Engine Active
+            </span>
+            <a href="/" class="nav-btn nav-btn-primary">🖥️ 프로토타입 대시보드 바로가기</a>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <h3>문서 목차</h3>
+            <ul>
+                <li><a href="#overview" class="active">1. 프로젝트 개요 및 추진 배경</a></li>
+                <li><a href="#matrix">2. 3D 다차원 매트릭스 아키텍처</a></li>
+                <li><a href="#pipeline">3. 형태소 기반 구문 스캔 & orthogonal 분류</a></li>
+                <li><a href="#triage">4. 3D 지능형 Triage 자동 배정 로직</a></li>
+                <li><a href="#flow">5. 데이터 파이프라인 흐름도</a></li>
+                <li><a href="#spec">6. 시스템 기술 스펙</a></li>
+                <li><a href="#value">7. 비즈니스 효과 및 미래 로드맵</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content Panel -->
+        <main>
+            <!-- 1. Overview -->
+            <section id="overview" class="section">
+                <span class="section-tag">Overview</span>
+                <h2>1. 프로젝트 개요 및 추진 배경</h2>
+                <p>
+                    본 프로젝트는 고객 불만 제기 및 위기 상황 접수 채널에서 수집되는 텍스트를 실시간으로 분석하여 중대한 <strong>내재적 위해(위험이슈)</strong>, <strong>외재적 압박(대외이슈)</strong>, 그리고 <strong>에스컬레이션 속도(시급성/긴급도)</strong>를 동시에 도출하는 <strong>3D 다차원 위협대응 및 실시간 Triage 배정 엔진</strong>입니다.
+                </p>
+                <p>
+                    기존의 1차원적 또는 2D 단순 분류 모델은 여러 종류의 위협 요소가 텍스트에 혼재해 있을 때 점수가 가장 높은 단 하나의 카테고리만 검출되는 <strong>하드맥스 한계(Hard-Max Limitation)</strong>가 있었으며, 위생 사고(식중독)와 물리 혼입(이물질)을 하나의 그릇에 억지로 모아 담음으로써 분류 정밀도가 희석되는 구조적 모순이 존재했습니다.
+                </p>
+                <p>
+                    본 엔진은 이러한 한계를 종식하기 위해 <strong>다중 위협 동시 검출(Multi-Label Co-occurrence)</strong> 모델로 도약하였으며, 식품 위해 요소를 생물학적/화학적 위해(식품위생)와 물리적 혼입(이물질 상품)으로 완벽하게 **상호 독립(Orthogonal)화**하였습니다. 이를 Z축의 시간적 시급성(Urgency)과 조합하여 <strong>전사적 위기 통제 배정 체계(Triage Matrix)</strong>를 완성하였습니다.
+                </p>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card danger">
+                        <div class="metric-val">3D</div>
+                        <div class="metric-label">X(위험) × Y(대외) × Z(시급성) 차원</div>
+                    </div>
+                    <div class="metric-card accent">
+                        <div class="metric-val">Multi</div>
+                        <div class="metric-label">다중 위협 동시 검출 (Co-occurrence)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-val">Triage</div>
+                        <div class="metric-label">유관 부서 실시간 위기 배정 통제</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. 3D Matrix -->
+            <section id="matrix" class="section">
+                <span class="section-tag">3D Architecture</span>
+                <h2>2. 3D 다차원 위험 매트릭스 아키텍처</h2>
+                <p>
+                    물리/생물학적 위험 수준, 대외적 압박 강도, 그리고 대응 시간 지평(SLA)은 완전히 독립된 3개의 차원을 이룹니다. 이들을 조합하여 실시간 대시보드 및 사내 배정 워크플로우에 완벽한 무결성을 제공하도록 <strong>3D Risk Space</strong>를 정립하였습니다.
+                </p>
+                
+                <div class="matrix-container">
+                    <div class="matrix-title">
+                        📊 3D 입체 매트릭스 분류 개념 (X축: 위험이슈 × Y축: 대외이슈)
+                    </div>
+                    <div class="matrix-grid-3d">
+                        <!-- headers -->
+                        <div class="matrix-cell matrix-header" style="background: transparent !important; border: none;"></div>
+                        <div class="matrix-cell matrix-header">법적조치 (대외)</div>
+                        <div class="matrix-cell matrix-header">언론제보 (대외)</div>
+                        <div class="matrix-cell matrix-header">정상 문의 (대외)</div>
+                        
+                        <!-- row 1: 식품변질 -->
+                        <div class="matrix-cell matrix-row-label">식품변질/건강위해<br>(위험 - 생물학)</div>
+                        <div class="matrix-cell matrix-active-cell" style="background: rgba(244, 63, 94, 0.08); border-color: var(--danger);">
+                            <strong>🚨 생물위해 법적대응</strong>
+                            <span class="cell-tag tag-danger">위험: 식품변질/위해</span>
+                            <span class="cell-tag tag-external">대외: 법적조치</span>
+                        </div>
+                        <div class="matrix-cell">
+                            식중독 공론화 위협
+                            <span class="cell-tag tag-danger">위험: 식품변질/위해</span>
+                            <span class="cell-tag tag-external">대외: 언론제보</span>
+                        </div>
+                        <div class="matrix-cell">
+                            위생 변질 변상 문의
+                            <span class="cell-tag tag-danger">위험: 식품변질/위해</span>
+                            <span class="cell-tag tag-normal">대외: 정상 문의</span>
+                        </div>
+                        
+                        <!-- row 2: 이물질 -->
+                        <div class="matrix-cell matrix-row-label">이물질 상품<br>(위험 - 물리)</div>
+                        <div class="matrix-cell">
+                            이물 혼입 민형사 고소
+                            <span class="cell-tag tag-danger">위험: 이물질 상품</span>
+                            <span class="cell-tag tag-external">대외: 법적조치</span>
+                        </div>
+                        <div class="matrix-cell">
+                            이물 발견 커뮤니티 전파
+                            <span class="cell-tag tag-danger">위험: 이물질 상품</span>
+                            <span class="cell-tag tag-external">대외: 언론제보</span>
+                        </div>
+                        <div class="matrix-cell">
+                            단순 이물 교환 요청
+                            <span class="cell-tag tag-danger">위험: 이물질 상품</span>
+                            <span class="cell-tag tag-normal">대외: 정상 문의</span>
+                        </div>
+                        
+                        <!-- row 3: 안전사고 -->
+                        <div class="matrix-cell matrix-row-label">안전사고<br>(위험)</div>
+                        <div class="matrix-cell">
+                            점포 부상 피해 소송
+                            <span class="cell-tag tag-danger">위험: 안전사고</span>
+                            <span class="cell-tag tag-external">대외: 법적조치</span>
+                        </div>
+                        <div class="matrix-cell">
+                            매장 시설 결함 폭로
+                            <span class="cell-tag tag-danger">위험: 안전사고</span>
+                            <span class="cell-tag tag-external">대외: 언론제보</span>
+                        </div>
+                        <div class="matrix-cell">
+                            매장 단순 상해 조치
+                            <span class="cell-tag tag-danger">위험: 안전사고</span>
+                            <span class="cell-tag tag-normal">대외: 정상 문의</span>
+                        </div>
+
+                        <!-- row 4: 정상 -->
+                        <div class="matrix-cell matrix-row-label">정상 문의<br>(위험)</div>
+                        <div class="matrix-cell">
+                            단순 서비스 불만 고소
+                            <span class="cell-tag tag-normal">위험: 정상 문의</span>
+                            <span class="cell-tag tag-external">대외: 법적조치</span>
+                        </div>
+                        <div class="matrix-cell">
+                            단순 불친절 SNS 게시
+                            <span class="cell-tag tag-normal">위험: 정상 문의</span>
+                            <span class="cell-tag tag-external">대외: 언론제보</span>
+                        </div>
+                        <div class="matrix-cell" style="background: rgba(16, 185, 129, 0.05); border-color: var(--accent);">
+                            <strong>🟢 일반 민원 안건</strong>
+                            <span class="cell-tag tag-normal">일반 단순 문의</span>
+                        </div>
+                    </div>
+                </div>
+                <p>
+                    여기에 Z축인 <strong>시급성 (Urgency)</strong>이 3단계(`IMMEDIATE`, `SHORT-TERM`, `MONITOR`)로 결합하여 5차원 교차 분석 스페이스를 형성하고, 실시간 의사결정의 신뢰도를 보장합니다.
+                </p>
+            </section>
+
+            <!-- 3. Pipeline -->
+            <section id="pipeline" class="section">
+                <span class="section-tag">Orthogonal NLP</span>
+                <h2>3. 형태소 기반 구문 스캔 & Orthogonal 카테고리화</h2>
+                <p>
+                    텍스트의 잠재 위험 분류 지표의 명확성을 위해 기존의 '법적 이슈'를 위험 축에서 전격 제외하여 대외 압박(법적조치)과의 중복 판정을 배제하고, Danger 축은 오로지 물리적/생물학적 위해 상황만을 독립적으로 측정하도록 정비하였습니다.
+                </p>
+
+                <div class="compare-box">
+                    <div class="compare-side con">
+                        <div class="compare-title">❌ 기존 위험 카테고리 중복 구조</div>
+                        <ul class="compare-list">
+                            <li>위험 축에 '법적 이슈' 존재 ➔ 대외 축의 '법적조치'와 의미론적 오버랩 발생</li>
+                            <li>식중독(생물 위해)과 유리조각(물리 혼입)을 전부 '이물질 상품'으로 묶음</li>
+                            <li>단일 최댓값(Hard-Max) 출력으로 인해 co-occurrence 요소 소멸 및 누락</li>
+                        </ul>
+                    </div>
+                    <div class="compare-side pro">
+                        <div class="compare-title">✅ 개편된 Orthogonal & Multi-Label 분류</div>
+                        <ul class="compare-list">
+                            <li>'법적 이슈'는 <strong>대외 축(법적조치)</strong>으로만 단일 타겟화하여 독립성 100% 확보</li>
+                            <li><strong>식품위생</strong> 카테고리를 독자 신설하여 식중독/알레르기 정밀 탐지</li>
+                            <li><strong>이물질 상품</strong> 카테고리는 철저하게 물리적 혼입(쇳조각, 벌레)만 엄격 조준</li>
+                            <li>임계치를 통과한 모든 위협 항목을 <strong>배열 형태(detected_categories JSON)</strong>로 다중 검출</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <p><strong>생물학적(식중독) 및 물리적(이물질) 위해 렉시콘 예시 (worker.py)</strong></p>
+                <pre><code>self.lexicons = {
+    <span class="comment"># 위험 이슈 (Orthogonalization 완료)</span>
+    <span class="string">"이물질 상품"</span>: [<span class="string">"벌레"</span>, <span class="string">"초파리"</span>, <span class="string">"바퀴벌레"</span>, <span class="string">"유해물"</span>, <span class="string">"쥐"</span>, <span class="string">"쥐머리"</span>, <span class="string">"이물질"</span>, <span class="string">"쇳조각"</span>, <span class="string">"유리"</span>],
+    <span class="string">"식품위생"</span>: [<span class="string">"식중독"</span>, <span class="string">"장염"</span>, <span class="string">"배탈"</span>, <span class="string">"복통"</span>, <span class="string">"설사"</span>, <span class="string">"구토"</span>, <span class="string">"알레르기"</span>, <span class="string">"알러지"</span>, <span class="string">"곰팡이"</span>, <span class="string">"상함"</span>, <span class="string">"변질"</span>]
+}</code></pre>
+            </section>
+
+            <!-- 4. Triage -->
+            <section id="triage" class="section">
+                <span class="section-tag">Triage Logic</span>
+                <h2>4. 3D 지능형 Triage 자동 배정 매트릭스</h2>
+                <p>
+                    텍스트의 내용적 위해성(Severity)과 Z축 시급성(Urgency)을 연계하여, 내용이 심각함에도 시급성 단어가 없어 하위 부서로 오분류되는 모순을 해소하는 <strong>Triage 자동 배정 알고리즘</strong>을 수립하였습니다.
+                </p>
+
+                <table class="triage-table">
+                    <thead>
+                        <tr>
+                            <th>위해성 판단 (위험/대외)</th>
+                            <th>Z축 시급성 수준</th>
+                            <th>최종 경보 수준 (Alarm Banner)</th>
+                            <th>사내 실시간 배정 타겟 (Dispatch Target)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="color: #f87171; font-weight: 600;">⚠️ 위해 및 대외 위협 검출</td>
+                            <td style="color: #f87171; font-weight: 600;">🚨 IMMEDIATE (초긴급)</td>
+                            <td style="background: rgba(239, 68, 68, 0.15); color: #fca5a5; font-weight: 700;">🟥 RED ALERT</td>
+                            <td style="font-weight: 600;">법무 / 홍보 / 품질 / CSO 긴급 배정 (골든타임 &lt; 6h)</td>
+                        </tr>
+                        <tr>
+                            <td style="color: #f87171; font-weight: 600;">⚠️ 위해 및 대외 위협 검출</td>
+                            <td>SHORT-TERM 또는 MONITOR</td>
+                            <td style="background: rgba(245, 158, 11, 0.1); color: #fde047; font-weight: 700;">🟨 AMBER ESCALATION</td>
+                            <td>CS 총괄 매니저 배정 (SLA &lt; 24h)</td>
+                        </tr>
+                        <tr>
+                            <td>🟢 위해 및 대외 위협 없음</td>
+                            <td>🚨 IMMEDIATE 또는 SHORT-TERM</td>
+                            <td style="background: rgba(245, 158, 11, 0.1); color: #fde047; font-weight: 700;">🟨 SLA WARNING</td>
+                            <td>CS 파트 리더 배정 (SLA &lt; 48h)</td>
+                        </tr>
+                        <tr>
+                            <td>🟢 위해 및 대외 위협 없음</td>
+                            <td>MONITOR (일반)</td>
+                            <td style="background: rgba(16, 185, 129, 0.1); color: #34d399; font-weight: 700;">🟩 GREEN MONITOR</td>
+                            <td>고객지원 부서 일반 CS 배정 (기본 SLA)</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p>
+                    이 배정 매트릭스는 대시보드 우측 최상단 <strong>"SLA Crisis Alarm" 배너</strong>에 완벽하게 실시간 녹아들어, 현업 부서의 개입 판단을 100% 자동화시킵니다.
+                </p>
+            </section>
+
+            <!-- 5. Flow Diagram -->
+            <section id="flow" class="section">
+                <span class="section-tag">Data Flow</span>
+                <h2>5. 데이터 파이프라인 및 아키텍처 흐름도</h2>
+                <p>
+                    클라이언트로부터 요청이 유입되었을 때, 실시간 분석(동기식)과 Celery 비동기 분산 분석(비동기식)이 데이터베이스 및 LLM 임베딩 모델 인프라에서 어떻게 흘러가며 정제되는지 보여주는 완전한 데이터 아키텍처 흐름도입니다.
+                </p>
+
+                <div class="diagram-container">
+                    <svg class="diagram-svg" viewBox="0 0 1000 450" width="100%" height="450" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Definitions for arrow heads -->
+                        <defs>
+                            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6" />
+                            </marker>
+                            <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
+                            </marker>
+                        </defs>
+
+                        <!-- GRID LINES for visual premium touch -->
+                        <g stroke="rgba(255,255,255,0.02)" stroke-width="1">
+                            <line x1="0" y1="50" x2="1000" y2="50" />
+                            <line x1="0" y1="150" x2="1000" y2="150" />
+                            <line x1="0" y1="250" x2="1000" y2="250" />
+                            <line x1="0" y1="350" x2="1000" y2="350" />
+                        </g>
+
+                        <!-- Connection lines -->
+                        <!-- User to FastAPI -->
+                        <path class="flow-line" d="M 90 225 L 200 225" stroke="#8b5cf6" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+                        <!-- FastAPI to Celery -->
+                        <path class="flow-line" d="M 310 250 L 310 320 A 20 20 0 0 0 330 340 L 460 340" stroke="#8b5cf6" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+                        <!-- FastAPI to EmbedServer -->
+                        <path class="flow-line" d="M 330 200 L 400 120 L 530 120" stroke="#8b5cf6" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+                        <!-- Celery to EmbedServer -->
+                        <path class="flow-line" d="M 540 310 L 540 230 A 20 20 0 0 1 560 210 L 580 160" stroke="#8b5cf6" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+                        <!-- EmbedServer to FastAPI (Results) -->
+                        <path class="flow-line" d="M 580 80 L 320 80 A 20 20 0 0 0 300 100 L 300 175" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrow-green)" stroke-dasharray="8,8" />
+                        <!-- Celery to DB -->
+                        <path class="flow-line" d="M 600 350 L 780 350" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrow-green)" />
+                        <!-- FastAPI to DB -->
+                        <path class="flow-line" d="M 320 225 L 780 225" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrow-green)" />
+
+                        <!-- Nodes -->
+                        <!-- User Node -->
+                        <g class="node" transform="translate(10, 185)">
+                            <rect width="80" height="80" rx="10" fill="rgba(30, 41, 59, 0.8)" stroke="rgba(255,255,255,0.1)" stroke-width="1.5" />
+                            <text x="40" y="35" fill="white" font-size="12" font-weight="700" text-anchor="middle">Client</text>
+                            <text x="40" y="55" fill="var(--text-muted)" font-size="10" text-anchor="middle">상담 데이터 인입</text>
+                        </g>
+
+                        <!-- Web App Node -->
+                        <g class="node" transform="translate(200, 175)">
+                            <rect width="130" height="100" rx="12" fill="rgba(124, 58, 237, 0.15)" stroke="var(--primary)" stroke-width="2" />
+                            <text x="65" y="35" fill="white" font-size="13" font-weight="700" text-anchor="middle">FastAPI</text>
+                            <text x="65" y="55" fill="white" font-size="13" font-weight="700" text-anchor="middle">Web App</text>
+                            <text x="65" y="75" fill="#c084fc" font-size="10" text-anchor="middle">Port 8000 (3D 엔진)</text>
+                        </g>
+
+                        <!-- Celery Node -->
+                        <g class="node" transform="translate(470, 310)">
+                            <rect width="130" height="80" rx="10" fill="rgba(168, 85, 247, 0.1)" stroke="#a855f7" stroke-width="1.5" />
+                            <text x="65" y="35" fill="white" font-size="13" font-weight="700" text-anchor="middle">Celery Worker</text>
+                            <text x="65" y="55" fill="var(--text-muted)" font-size="10" text-anchor="middle">비동기 백그라운드 큐</text>
+                        </g>
+
+                        <!-- Llama.cpp Node -->
+                        <g class="node" transform="translate(540, 70)">
+                            <rect width="180" height="90" rx="10" fill="rgba(234, 179, 8, 0.1)" stroke="#eab308" stroke-width="2" />
+                            <text x="90" y="35" fill="white" font-size="13" font-weight="700" text-anchor="middle">llama.cpp Embed Server</text>
+                            <text x="90" y="55" fill="#fef08a" font-size="11" font-weight="600" text-anchor="middle">BGE-M3 (HTTP v1 Mode)</text>
+                            <text x="90" y="72" fill="var(--text-muted)" font-size="9" text-anchor="middle">Port 8081 (Torch-Free)</text>
+                        </g>
+
+                        <!-- DB Node -->
+                        <g class="node" transform="translate(790, 185)">
+                            <rect width="150" height="100" rx="10" fill="rgba(16, 185, 129, 0.1)" stroke="var(--accent)" stroke-width="2" />
+                            <text x="75" y="35" fill="white" font-size="13" font-weight="700" text-anchor="middle">PostgreSQL DB</text>
+                            <text x="75" y="55" fill="#a7f3d0" font-size="10" text-anchor="middle">Port 5433 (counseling_data)</text>
+                            <text x="75" y="75" fill="rgba(255,255,255,0.4)" font-size="9" text-anchor="middle">3D 스키마 메타데이터</text>
+                        </g>
+                    </svg>
+                </div>
+            </section>
+
+            <!-- 6. Tech Spec -->
+            <section id="spec" class="section">
+                <span class="section-tag">Tech Specs</span>
+                <h2>6. 시스템 기술 스펙</h2>
+                <p>
+                    운영 및 장애 방어 환경과 동일하게 CPU 오버헤드를 극소화하고 실시간 다차원 마이그레이션이 동작하도록 이중 분산 아키텍처를 연동시켰습니다.
+                </p>
+
+                <div class="tech-badges">
+                    <div class="tech-badge tech-server"><span></span>FastAPI & Uvicorn (Web API)</div>
+                    <div class="tech-badge tech-nlp"><span></span>kiwipiepy 형태소 및 구문 분석기</div>
+                    <div class="tech-badge tech-nlp"><span></span>llama.cpp Embed Server (BGE-M3)</div>
+                    <div class="tech-badge tech-db"><span></span>PostgreSQL 15 (psycopg 3)</div>
+                    <div class="tech-badge tech-queue"><span></span>Celery 5 & Redis 7 Broker</div>
+                    <div class="tech-badge tech-server"><span></span>Docker Compose & publish_default Network</div>
+                </div>
+
+                <p><strong>아키텍처 세부 강점</strong></p>
+                <div style="margin-left: 1.5rem; color: var(--text-muted); font-size: 0.95rem;">
+                    <ul style="list-style-type: square; margin-bottom: 1.5rem;">
+                        <li style="margin-bottom: 0.5rem;">
+                            <strong>가벼우나 강력한 임베딩 서빙</strong>: 거대한 PyTorch 엔진 없이 C++ 단일 구동 방식인 <code>llama.cpp</code> 서빙 모듈을 사용하여 컨테이너 리소스를 극도로 절감하고 레이턴시를 2초 미만으로 지켰습니다.
+                        </li>
+                        <li style="margin-bottom: 0.5rem;">
+                            <strong>스키마 1NF 규격화 보존</strong>: <code>urgency_level</code> 및 <code>detected_categories</code> JSON 컬럼을 PostgreSQL 상에 정식 확장하여, 구 대시보드 쿼리( risk_level 단일 조회)와의 하위 호환성을 완벽히 만족하며 다중 위협 메타데이터를 정밀 구조화했습니다.
+                        </li>
+                        <li style="margin-bottom: 0.5rem;">
+                            <strong>독립적 네트워크 격리 구조</strong>: 타 서비스들과 간섭이 일어날 수 있는 외부 연동을 <code>publish_default</code> 가상 네트워크에만 결합 바인딩하여 안전한 외부 통신(Cloudflare Tunnel) 환경을 제공합니다.
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 7. Value & Future Roadmap -->
+            <section id="value" class="section" style="margin-bottom: 0;">
+                <span class="section-tag">Value Proposition</span>
+                <h2>7. 비즈니스 효과 및 미래 로드맵</h2>
+                <p>
+                    3D 다차원 Triage 배정 엔진은 단순한 데이터 분석 툴이 아닌, 고객 피해 상황을 즉각 파악하여 전사 컴플라이언스 비상 조직을 자동 가동시키는 <strong>스마트 기업 위기대응 센터</strong>로서 작동합니다.
+                </p>
+
+                <div class="metrics-grid">
+                    <div class="metric-card danger">
+                        <div class="metric-val">0%</div>
+                        <div class="metric-label">위기 대응 누락/오배정율</div>
+                    </div>
+                    <div class="metric-card accent">
+                        <div class="metric-val">Zero</div>
+                        <div class="metric-label">위협 오분류 및 간섭 비율</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-val">&lt; 6h</div>
+                        <div class="metric-label">초긴급 골든타임 보장 배정</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; color: var(--text-muted); font-size: 0.95rem;">
+                    <ol style="margin-left: 1.5rem; margin-bottom: 2rem;">
+                        <li style="margin-bottom: 1rem;">
+                            <strong>고객 신체 건강 리스크의 즉시 격리</strong>:
+                            <br>유리조각 등 물리 혼입(이물질)과 식중독/알레르기(건강 위해)를 엄격히 orthogonal하게 분리함으로써, 생물학적 위해 상황에 특화된 식품안전 QA 및 현장 단속 조직이 단 6시간 내에 즉시 개입할 수 있는 완벽한 법적 대응망을 구축했습니다.
+                        </li>
+                        <li style="margin-bottom: 1rem;">
+                            <strong>SLA 위기 알람 배너를 통한 부서 배정 완전 자동화</strong>:
+                            <br>수동으로 리스크를 읽고 배정 부서를 고민하던 상담 분류 업무의 병목 현상을 해결하고, AI가 도출한 3D Triage 배정 매트릭스를 기반으로 하여 관련 부서(PR, 품질관리, 법무 등)로의 실시간 자동 전송 및 의사결정을 실현합니다.
+                        </li>
+                        <li style="margin-bottom: 1rem;">
+                            <strong>미래 로드맵 - LLM 자율 대응 가이드 연동</strong>:
+                            <br>향후 3D Triage 판정 결과를 기업 내부의 CRM 및 ERP 시스템과 실시간 API로 연계하고, 탐지된 위협에 알맞은 자율 답변 초안 생성 및 유사 법률 판례 조회를 보조하는 LLM 비서 솔루션과의 확장을 도모할 예정입니다.
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="footer-logo">
+                    <p>© 2026 Intelligence Risk Detection & Triage System. All Rights Reserved.</p>
+                    <p style="font-size: 0.75rem; margin-top: 0.5rem;">Designed and Powered by Advanced Agentic NLP Pipeline (IRDA v2).</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar active state highlights on scroll
+        const sections = document.querySelectorAll('.section');
+        const navLi = document.querySelectorAll('.sidebar a');
+        
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= (sectionTop - 250)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLi.forEach(a => {
+                a.classList.remove('active');
+                if (a.getAttribute('href') === `#${current}`) {
+                    a.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

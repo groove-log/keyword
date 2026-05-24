@@ -40,6 +40,12 @@ class AsyncExtractRequest(BaseModel):
 async def read_index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+# 1.2. 프로젝트 가이드 및 기술 백서 페이지 서빙
+@app.get("/guide.html", response_class=HTMLResponse)
+@app.get("/guide", response_class=HTMLResponse)
+async def read_guide(request: Request):
+    return templates.TemplateResponse("guide.html", {"request": request})
+
 # 1.5. 서버 임계값 설정 정보 전달 API
 @app.get("/api/settings")
 async def get_settings():
@@ -61,9 +67,23 @@ async def extract_sync(req: SyncExtractRequest):
     
     start_time = time.time()
     try:
-        # 1. 2D 위험 매트릭스 판별 진행
-        risk_level, sim_score = classifier.classify_danger(req.text, req.thresholds)
-        external_issue, ext_score = classifier.classify_external(req.text, req.thresholds)
+        # 1. 3D 위험 매트릭스 및 시급성 판별 진행
+        dangers = classifier.classify_danger(req.text, req.thresholds)
+        externals = classifier.classify_external(req.text, req.thresholds)
+        urgency_level = classifier.classify_urgency(req.text)
+        
+        # 대표 단일값 및 최고 점수 지정
+        risk_level = dangers[0][0]
+        sim_score = dangers[0][1]
+        
+        external_issue = externals[0][0]
+        ext_score = externals[0][1]
+        
+        # 다중 매핑 스키마 메타데이터 구조화
+        detected_json = {
+            "danger": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(dangers)],
+            "external": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(externals)]
+        }
 
         # 2. BGE-m3 임베딩 서버 호출 및 유사도 계산 진행 (듀얼 가이드 결합 적용)
         weight_coeff = float(os.getenv("DANGER_KEYWORD_GUIDE_WEIGHT", "0.35"))
@@ -106,7 +126,9 @@ async def extract_sync(req: SyncExtractRequest):
             "risk_level": risk_level,
             "risk_score": round(sim_score, 4),
             "external_issue": external_issue,
-            "external_score": round(ext_score, 4)
+            "external_score": round(ext_score, 4),
+            "urgency_level": urgency_level,
+            "detected_categories": detected_json
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"임베딩 서버 통신 실패: {str(e)}")
@@ -155,7 +177,7 @@ async def extract_async(req: AsyncExtractRequest):
         if conn:
             conn.close()
 
-# 4. DB 히스토리 최신 10건 조회 API (2D 매트릭스 필드 추가)
+# 4. DB 히스토리 최신 10건 조회 API (3D 입체 필드 추가)
 @app.get("/api/history")
 async def get_history():
     try:
@@ -163,10 +185,10 @@ async def get_history():
         cur = conn.cursor()
         
         cur.execute("""
-            SELECT id, text, keywords, status, updated_at, risk_level, external_issue 
+            SELECT id, text, keywords, status, updated_at, risk_level, external_issue, urgency_level, detected_categories 
             FROM counseling_data 
             ORDER BY id DESC 
-            LIMIT 10;
+            LIMIT 100;
         """)
         rows = cur.fetchall()
         cur.close()
@@ -181,7 +203,9 @@ async def get_history():
                 "status": row[3],
                 "updated_at": row[4].strftime("%Y-%m-%d %H:%M:%S") if row[4] else "",
                 "risk_level": row[5] if row[5] else "정상 문의",
-                "external_issue": row[6] if row[6] else "정상 문의"
+                "external_issue": row[6] if row[6] else "정상 문의",
+                "urgency_level": row[7] if row[7] else "MONITOR",
+                "detected_categories": row[8] if row[8] else ""
               })
             
         return history
@@ -208,8 +232,21 @@ async def reanalyze_case(counseling_id: int):
         conn.close()
         
         # 2. 실시간 판별 및 키워드 추출 진행 (구문 추출 + 듀얼가이드 + 중복제거 적용)
-        risk_level, sim_score = classifier.classify_danger(text)
-        external_issue, ext_score = classifier.classify_external(text)
+        dangers = classifier.classify_danger(text)
+        externals = classifier.classify_external(text)
+        urgency_level = classifier.classify_urgency(text)
+        
+        risk_level = dangers[0][0]
+        sim_score = dangers[0][1]
+        
+        external_issue = externals[0][0]
+        ext_score = externals[0][1]
+        
+        detected_json = {
+            "danger": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(dangers)],
+            "external": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(externals)]
+        }
+        detected_categories_str = json.dumps(detected_json, ensure_ascii=False)
         
         weight_coeff = 0.35
         results = extractor.extract_keywords(
@@ -243,9 +280,9 @@ async def reanalyze_case(counseling_id: int):
         cur = conn.cursor()
         cur.execute("""
             UPDATE counseling_data 
-            SET keywords = %s, status = 'COMPLETED', risk_level = %s, external_issue = %s, updated_at = NOW() 
+            SET keywords = %s, status = 'COMPLETED', risk_level = %s, external_issue = %s, urgency_level = %s, detected_categories = %s, updated_at = NOW() 
             WHERE id = %s;
-        """, (keywords_json_str, risk_level, external_issue, counseling_id))
+        """, (keywords_json_str, risk_level, external_issue, urgency_level, detected_categories_str, counseling_id))
         conn.commit()
         cur.close()
         conn.close()
@@ -255,6 +292,8 @@ async def reanalyze_case(counseling_id: int):
             "counseling_id": counseling_id,
             "risk_level": risk_level,
             "external_issue": external_issue,
+            "urgency_level": urgency_level,
+            "detected_categories": detected_json,
             "keywords": keywords
         }
         
@@ -275,8 +314,18 @@ async def reanalyze_all_cases():
         reanalyzed_count = 0
         for counseling_id, text in rows:
             # 실시간 판별 및 키워드 추출 진행 (구문 추출 + 듀얼가이드 + 중복제거 적용)
-            risk_level, sim_score = classifier.classify_danger(text)
-            external_issue, ext_score = classifier.classify_external(text)
+            dangers = classifier.classify_danger(text)
+            externals = classifier.classify_external(text)
+            urgency_level = classifier.classify_urgency(text)
+            
+            risk_level = dangers[0][0]
+            external_issue = externals[0][0]
+            
+            detected_json = {
+                "danger": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(dangers)],
+                "external": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(externals)]
+            }
+            detected_categories_str = json.dumps(detected_json, ensure_ascii=False)
             
             weight_coeff = 0.35
             results = extractor.extract_keywords(
@@ -308,9 +357,9 @@ async def reanalyze_all_cases():
             # DB 업데이트
             cur.execute("""
                 UPDATE counseling_data 
-                SET keywords = %s, status = 'COMPLETED', risk_level = %s, external_issue = %s, updated_at = NOW() 
+                SET keywords = %s, status = 'COMPLETED', risk_level = %s, external_issue = %s, urgency_level = %s, detected_categories = %s, updated_at = NOW() 
                 WHERE id = %s;
-            """, (keywords_json_str, risk_level, external_issue, counseling_id))
+            """, (keywords_json_str, risk_level, external_issue, urgency_level, detected_categories_str, counseling_id))
             reanalyzed_count += 1
             
         conn.commit()

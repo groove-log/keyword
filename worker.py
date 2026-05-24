@@ -335,21 +335,23 @@ print("KeywordExtractor ready! (torch-free / llama.cpp HTTP only)")
 # 3. 2D 위험 매트릭스 세부지침 정의
 DEFAULT_DANGER_GUIDELINES = {
     "폭력 및 폭행": "타인이나 직원에 대하여 신체적인 상해를 가하거나 직접 타격하고, 물리적으로 위해를 가하겠다고 위협하고 기물을 파손하며 난동 및 폭력 행패를 부리는 상황입니다. 주먹으로 때리겠다, 죽이겠다, 멱살을 잡겠다, 뺨을 때리겠다, 칼로 찌르겠다와 같은 직접적인 언어적 살해 협박 및 위해 경고, 그리고 실제로 물건을 던지거나 몸을 밀치고 흉기를 휘두르는 물리적 공격, 위협적 폭언 및 난폭한 욕설을 모두 포함합니다.",
-    "성폭력": "매장의 점장, 관리자, 상사 또는 근무자가 타인을 대상으로 성적 수치심, 불쾌감을 유발하는 성희롱, 성추행 행위입니다. 음담패설 외에도 점장이나 상사가 우월적 지위를 이용하여 피해자가 거부하고 불안해함에도 불구하고 사적인 대화를 지속하거나, 조용한 곳, 단둘이 있는 밀폐된 방이나 사적 공간으로 자꾸 유인하고 계속 불러들이며 관계를 강요하는 비정상적인 접근, 가스라이팅, 그루밍(심리적 길들이기) 행위를 모두 포함합니다.",
-    "이물질 상품": "고객이 구매한 상품(특히 도시락, 삼각김밥, 빵, 디저트, 음료 등 먹는 식품) 내부에서 제조, 포장, 또는 유통 과정 중에 혼입된 비정상적인 유해 이물질이 발견되어 항의하는 위생 클레임입니다. 식품 내부나 표면에서 발견된 벌레(초파리, 바퀴벌레, 애벌레 등), 머리카락, 먼지, 곰팡이, 손톱뿐만 아니라 쇳조각, 유리 파편, 플라스틱, 비닐, 스테이플러 심 등 날카롭고 위험한 물질을 지칭합니다. 또한 제품이 변질되어 쉰내나 상한 냄새가 나거나 부패한 상태, 그리고 이를 섭취하거나 삼켜서 발생한 배탈, 장염, 식중독, 구토, 치아 부러짐(파손) 등의 신체적 위해를 모두 포함합니다.",
+    "성폭력": "매장의 점장, 관리자, 상사 또는 근무자가 타인을 대상으로 성적 수치심과 성적 불쾌감을 유발하는 성희롱, 성추행 행위입니다. 신체의 허리, 어깨, 가슴, 엉덩이, 허벅지 등 특정 부위를 만지거나 더듬는 성적 신체 접촉, 성적 농담이나 음담패설, 음란한 사진이나 영상을 보여주는 행위, 성적 관계를 요구하거나 데이트를 집요하게 강요하는 행위, 피해자의 외모나 몸매에 대해 성적으로 평가하는 발언, 우월적 지위를 이용하여 성적 호의를 강요하거나 거부 시 불이익을 주겠다고 협박하는 행위, 그리고 피해자를 성적 대상으로 길들이는 그루밍(심리적 길들이기) 행위를 모두 포함합니다.",
+    "이물질 상품": "고객이 구매한 상품(특히 도시락, 삼각김밥, 빵, 디저트, 음료 등 먹는 식품) 내부에서 제조, 포장, 또는 유통 과정 중에 혼입된 비정상적인 유해 물리적 이물질이 발견되어 항의하는 위생 클레임입니다. 식품 내부나 표면에서 발견된 벌레(초파리, 바퀴벌레, 애벌레 등), 머리카락, 먼지, 손톱뿐만 아니라 슁조각, 유리 파편, 플라스틱, 비닐, 스테이플러 심 등 날카롭고 위험한 물리적 물질의 발견 및 혼입 상황을 의미합니다.",
+    "식품위생": "고객이 구매하거나 취식한 식품(도시락, 삼각김밥, 샌드위치, 빵, 디저트 등)의 부패, 상함, 쉰내, 변질, 곰팡이 발생 상황 또는 특정 성분으로 인한 심각한 알레르기 유발 상황을 의미합니다. 또한 이를 섭취하고 발생한 식중독, 장염, 복통, 배탈, 구토, 설사, 두드러기, 호흡곤란 등 신체적 건강 위해 및 병원 치료/보상을 호소하는 식품 위생 및 생물학적/화학적 건강 위해 클레임을 모두 포함합니다.",
     "안전사고": "매장 내부, 외부 부대시설, 주차장, 계단, 출입구 또는 인근 도로에서 고객이나 근무자의 생명과 신체 안전을 위협하는 실제 사고 상황이나 잠재적인 사고 위험 요인을 의미합니다. 미끄러짐, 넘어짐, 추락, 충돌, 엘리베이터/자동문 끼임, 화상, 화재, 누수 등 실제 다쳐서 신체적 피해(골절, 출혈, 부상, 찰과상)를 입고 119 구급차를 부르거나 응급실에 간 상황뿐만 아니라, 시설 결함이나 불법 적치물, 위험 방치물로 인해 넘어질 뻔한 상황, 차도나 도로 침범으로 인한 교통사고 발생 위험성 및 충돌 우려, 안전 위해 및 사고 경고 상황을 모두 포함합니다."
 }
 
 DEFAULT_EXTERNAL_GUIDELINES = {
-    "법적조치": "자사나 매장, 직원을 대상으로 직접적인 법적 처벌이나 소송을 제기하겠다고 언급하거나 고소, 고발 진행 및 예정, 변호사 자문 및 소송 준비 등의 의지를 표현하는 상황입니다. 경찰 고소, 민사 소송 제기, 법적 처벌 요구, 내용증명 발송, 소송 준비를 하겠다, 고소하겠다는 발언을 포함합니다.",
+    "법적조치": "자사나 매장, 직원을 대상으로 직접적인 법적 처벌이나 소송을 제기하겠다고 언급하거나 고소, 고발 진행 및 예정, 변호사 자문 및 소송 준비 등의 의지를 표현하는 상황입니다. 경찰 고소, 민사 소송 제기, 법정 대응, 법적 처벌 요구, 내용증명 발송, 소송 준비를 하겠다, 법원 고소하겠다는 발언 및 소송장 접수, 고소하겠다는 발언을 포함합니다.",
     "언론제보": "외부 언론사(방송국, 뉴스 등) 및 미디어(유튜브, SNS, 커뮤니티 등)에 해당 사실을 제보하여 사회적 이슈로 공론화하겠다고 경고하거나 언급하는 상황입니다. 언론에 제보하겠다, 방송에 알리겠다, 인터넷이나 유튜브에 올리겠다는 발언을 포함합니다.",
-    "이슈제기": "소비자원, 구청, 시청, 식약처, 소방서 등 관할 관공서나 공공기관에 공식 민원 제기, 불법 적치물 신고, 위생 단속 요구 등 법제상 문제를 제기하고 신고 및 고발하겠다고 언급하는 상황입니다. 소비자보호원 민원, 구청에 정식 신고하겠다, 과태료를 물게 하겠다, 식약처에 신고하겠다는 발언을 포함합니다."
+    "이슈제기": "소비자원, 소비자보호원, 구청, 시청, 식약처, 소방서 등 관할 관공서나 공공기관에 공식 민원 제기, 불법 적치물 신고, 위생 단속 요구 등 법제상 문제를 제기하고 신고 및 고발하겠다고 언급하는 상황입니다. 소비자보호원 접수, 소비자보호원 민원, 구청에 정식 신고하겠다, 과태료를 물게 하겠다, 식약처에 신고하겠다는 발언 및 공공기관 신고, 소보원 접수 예정을 포함합니다."
 }
 
 DEFAULT_DANGER_THRESHOLDS = {
     "폭력 및 폭행": 0.58,
-    "성폭력": 0.53,
+    "성폭력": 0.58,
     "이물질 상품": 0.60,
+    "식품위생": 0.55,
     "안전사고": 0.55,
     "법적조치": 0.52,
     "언론제보": 0.52,
@@ -404,14 +406,15 @@ class SemanticClassifier:
         
         self.lexicons = {
             # 위험 이슈
-            "안전사고": ["낙상", "미끄러짐", "빙판", "눈길", "붕괴", "깔림", "끼임", "화상", "화재", "누수", "다침", "넘어짐", "부딪힘", "사고", "위험", "병원", "응급실", "구급차", "이송", "구토"],
+            "안전사고": ["낙상", "미끄러짐", "빙판", "눈길", "붕괴", "깔림", "끼임", "화상", "화재", "누수", "다침", "넘어짐", "부딪힘", "사고", "위험", "병원", "응급실", "구급차", "이송"],
             "성폭력": ["성추행", "성희롱", "유인", "그루밍", "추행", "접촉", "희롱"],
-            "폭력 및 폭행": ["폭행", "구타", "협박", "살해", "때리다", "죽이다", "멱살", "흉기", "난동"],
-            "이물질 상품": ["벌레", "초파리", "바퀴벌레", "식중독", "장염", "배탈", "곰팡이", "유해물", "혼입", "쥐", "쥐머리", "이물질", "머리카락", "손톱", "쇳조각", "유리"],
+            "폭력 및 폭행": ["폭행", "구타", "협박", "살해", "때리다", "죽이다", "멱살", "흉기", "난동", "욕설", "던지다", "던지기도", "행패", "던진", "던지며", "기계를", "욕을"],
+            "이물질 상품": ["벌레", "초파리", "바퀴벌레", "유해물", "혼입", "쥐", "쥐머리", "이물질", "머리카락", "손톱", "쇳조각", "유리"],
+            "식품위생": ["식중독", "장염", "배탈", "복통", "설사", "구토", "알레르기", "알러지", "곰팡이", "쉰내", "부패", "상함", "변질", "쉰", "두드러기", "가려움", "호흡곤란"],
             # 외부 이슈
-            "법적조치": ["고소", "고발", "소송", "신고", "과태료", "벌금", "처벌", "피해 보상", "내용증명", "소환", "고발장", "고소장"],
+            "법적조치": ["고소", "고발", "소송", "신고", "과태료", "벌금", "처벌", "피해 보상", "내용증명", "소환", "고발장", "고소장", "법원", "변호사", "법적", "재판", "경찰", "소송장", "고소하겠다", "고발하겠다"],
             "언론제보": ["제보", "언론사", "기자", "뉴스", "방송", "유튜브", "커뮤니티", "인터넷", "인스타", "보도"],
-            "이슈제기": ["소비자원", "구청", "시청", "식약처", "소방서", "관공서", "공공기관", "민원"]
+            "이슈제기": ["소비자원", "소비자보호원", "소보원", "구청", "시청", "식약처", "소방서", "관공서", "공공기관", "민원", "접수", "신고", "고발", "위생과", "단속", "신고하겠다", "접수하겠다"]
         }
 
     def _ensure_cached(self):
@@ -434,9 +437,33 @@ class SemanticClassifier:
                     print(f" -> ERROR caching external guideline '{category}': {e}")
                     raise e
 
-    def classify_danger(self, text: str, custom_thresholds: dict[str, float] = None) -> tuple[str, float]:
+    def classify_urgency(self, text: str) -> str:
+        """형태소 토큰 스캔을 통한 시급성(Z축) 판정 (골든타임 대응용 고속 연산)"""
         if not text.strip():
-            return "정상 문의", 0.0
+            return "MONITOR"
+            
+        try:
+            tokens = self.extractor.kiwi.tokenize(text)
+            words = {t.form for t in tokens}
+            
+            # 초긴급 어휘 집합 (SLA < 6h)
+            immediate_lexicon = {"당장", "오늘", "즉시", "실시간", "지금", "응급실", "구급차", "당일", "급함", "응급", "당장"}
+            # 단기대응 어휘 집합 (SLA < 48h)
+            short_term_lexicon = {"이번주", "조만간", "며칠", "기한", "데드라인", "주말"}
+            
+            if words.intersection(immediate_lexicon):
+                return "IMMEDIATE"
+            elif words.intersection(short_term_lexicon) or any("이번" in w or "일주일" in w for w in words):
+                return "SHORT-TERM"
+                
+            return "MONITOR"
+        except Exception as e:
+            print(f"Urgency classification failed: {e}")
+            return "MONITOR"
+
+    def classify_danger(self, text: str, custom_thresholds: dict[str, float] = None) -> list[tuple[str, float]]:
+        if not text.strip():
+            return [("정상 문의", 0.0)]
         
         try:
             self._ensure_cached()
@@ -452,12 +479,11 @@ class SemanticClassifier:
                 score = self.extractor._cosine_similarity(doc_emb, desc_emb)
                 scores[category] = score
                 
-            passed_category = None
-            max_passed_score = -1.0
+            passed_categories = []
             
             for category, score in scores.items():
                 # 위해 사전 단어가 검출된 경우 임계값을 0.48로 동적 완화
-                has_lexicon_trigger = any(lex in words for lex in self.lexicons.get(category, []))
+                has_lexicon_trigger = any(lex in words or lex in text for lex in self.lexicons.get(category, []))
                 
                 if has_lexicon_trigger:
                     thresh = 0.48
@@ -465,22 +491,22 @@ class SemanticClassifier:
                     thresh = active_thresholds.get(category, self.threshold)
                     
                 if score >= thresh:
-                    if score > max_passed_score:
-                        max_passed_score = score
-                        passed_category = category
+                    passed_categories.append((category, score))
             
-            if passed_category:
-                return passed_category, max_passed_score
+            if passed_categories:
+                # 점수 기준 내림차순 정렬
+                passed_categories.sort(key=lambda x: x[1], reverse=True)
+                return passed_categories
             else:
                 overall_best_score = max(scores.values()) if scores else 0.0
-                return "정상 문의", overall_best_score
+                return [("정상 문의", overall_best_score)]
         except Exception as e:
             print(f"Danger classification failed: {e}")
-            return "정상 문의", 0.0
+            return [("정상 문의", 0.0)]
 
-    def classify_external(self, text: str, custom_thresholds: dict[str, float] = None) -> tuple[str, float]:
+    def classify_external(self, text: str, custom_thresholds: dict[str, float] = None) -> list[tuple[str, float]]:
         if not text.strip():
-            return "정상 문의", 0.0
+            return [("정상 문의", 0.0)]
         
         try:
             self._ensure_cached()
@@ -496,12 +522,11 @@ class SemanticClassifier:
                 score = self.extractor._cosine_similarity(doc_emb, desc_emb)
                 scores[category] = score
                 
-            passed_category = None
-            max_passed_score = -1.0
+            passed_categories = []
             
             for category, score in scores.items():
                 # 위해 사전 단어가 검출된 경우 외부 이슈 임계값을 0.40로 동적 완화
-                has_lexicon_trigger = any(lex in words for lex in self.lexicons.get(category, []))
+                has_lexicon_trigger = any(lex in words or lex in text for lex in self.lexicons.get(category, []))
                 
                 if has_lexicon_trigger:
                     thresh = 0.40
@@ -509,18 +534,17 @@ class SemanticClassifier:
                     thresh = active_thresholds.get(category, self.threshold)
                     
                 if score >= thresh:
-                    if score > max_passed_score:
-                        max_passed_score = score
-                        passed_category = category
+                    passed_categories.append((category, score))
             
-            if passed_category:
-                return passed_category, max_passed_score
+            if passed_categories:
+                passed_categories.sort(key=lambda x: x[1], reverse=True)
+                return passed_categories
             else:
                 overall_best_score = max(scores.values()) if scores else 0.0
-                return "정상 문의", overall_best_score
+                return [("정상 문의", overall_best_score)]
         except Exception as e:
             print(f"External classification failed: {e}")
-            return "정상 문의", 0.0
+            return [("정상 문의", 0.0)]
 
     def is_protected(self, phrase: str) -> bool:
         if not phrase.strip():
@@ -631,11 +655,28 @@ def process_keyword_extraction(
     Redis 큐에서 메시지를 받아 실행되는 비동기 작업.
     """
     try:
-        # 1. 2D 위험 매트릭스 판별 진행
-        risk_level, sim_score = classifier.classify_danger(text, custom_thresholds)
-        external_issue, ext_score = classifier.classify_external(text, custom_thresholds)
+        import json
+        
+        # 1. 3D 위험 매트릭스 및 시급성 판별 진행
+        dangers = classifier.classify_danger(text, custom_thresholds)
+        externals = classifier.classify_external(text, custom_thresholds)
+        urgency_level = classifier.classify_urgency(text)
+        
+        # 대표 단일값 및 최고 점수 지정
+        risk_level = dangers[0][0]
+        sim_score = dangers[0][1]
+        
+        external_issue = externals[0][0]
+        ext_score = externals[0][1]
+        
+        # 다중 매핑 스키마용 메타데이터 JSON 생성
+        detected_json = {
+            "danger": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(dangers)],
+            "external": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(externals)]
+        }
+        detected_categories_str = json.dumps(detected_json, ensure_ascii=False)
 
-        # 2. 키워드 구문 추출 (듀얼 가이드 및 1.5배 위해 가중치 적용)
+        # 2. 키워드 구문 추출 (듀얼 가이드 및 위해 가중치 적용)
         weight_coeff = float(os.getenv("DANGER_KEYWORD_GUIDE_WEIGHT", "0.35"))
         keywords_with_scores = extractor.extract_keywords(
             text,
@@ -668,12 +709,12 @@ def process_keyword_extraction(
         # DB에 JSON 문자열로 저장
         keywords_json_str = json.dumps(structured_keywords, ensure_ascii=False)
 
-        # 5. PostgreSQL DB 업데이트 (2D 판정 동시 저장)
+        # 5. PostgreSQL DB 업데이트 (대표 카테고리 + 시급성 + 다중 매핑 메타데이터 동시 저장)
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute(
-            "UPDATE counseling_data SET keywords = %s, status = 'COMPLETED', risk_level = %s, external_issue = %s WHERE id = %s",
-            (keywords_json_str, risk_level, external_issue, counseling_id),
+            "UPDATE counseling_data SET keywords = %s, status = 'COMPLETED', risk_level = %s, external_issue = %s, urgency_level = %s, detected_categories = %s, updated_at = NOW() WHERE id = %s",
+            (keywords_json_str, risk_level, external_issue, urgency_level, detected_categories_str, counseling_id),
         )
         conn.commit()
         cur.close()
@@ -681,12 +722,12 @@ def process_keyword_extraction(
 
         # 6. 긴급 안건 탐지 로그 출력
         if risk_level != "정상 문의" or external_issue != "정상 문의":
-            print(f"[긴급 알림 발송 대상] ID: {counseling_id} - 2D 긴급 감지됨: 위험={risk_level} (유사도: {sim_score:.4f}), 외부={external_issue} (유사도: {ext_score:.4f})!")
+            print(f"[긴급 알림 발송 대상] ID: {counseling_id} - 3D 긴급 감지됨: 위험={risk_level} (유사도: {sim_score:.4f}), 외부={external_issue} (유사도: {ext_score:.4f}), 시급성={urgency_level}!")
 
         # 호환성을 위해 리턴 메시지에는 간단히 쉼표 문자열로 출력
         extracted_words = [kw[0] for kw in keywords_with_scores]
         keyword_str = ", ".join(extracted_words)
-        return f"Success: ID {counseling_id} -> {keyword_str} | Risk: {risk_level} ({sim_score:.4f}), External: {external_issue} ({ext_score:.4f})"
+        return f"Success: ID {counseling_id} -> {keyword_str} | Risk: {risk_level} ({sim_score:.4f}), External: {external_issue} ({ext_score:.4f}) | Urgency: {urgency_level}"
 
     except Exception as e:
         return f"Fail: ID {counseling_id} -> Error: {str(e)}"

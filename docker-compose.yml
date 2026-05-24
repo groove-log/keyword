@@ -19,6 +19,7 @@ services:
       POSTGRES_USER: ${DB_USER:-ledger_user}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-ledger_pass}
       POSTGRES_DB: ${DB_NAME:-ledger_db}
+      TZ: Asia/Seoul
     ports:
       - "5433:5432"
     volumes:
@@ -30,6 +31,7 @@ services:
     container_name: keyword-worker
     restart: always
     environment:
+      - TZ=Asia/Seoul
       - REDIS_URL=redis://redis:6379/0
       - DB_HOST=db
       - DB_PORT=5432
@@ -59,6 +61,7 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - TZ=Asia/Seoul
       - REDIS_URL=redis://redis:6379/0
       - DB_HOST=db
       - DB_PORT=5432
@@ -78,11 +81,15 @@ services:
       - db
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    networks:
+      - default
+      - publish_default
 
-#networks:
-  #publish_default
-    #external: true
-    
+networks:
+  default:
+  publish_default:
+    external: true
 
 volumes:
   postgres_data:
+
