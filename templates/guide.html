@@ -618,7 +618,8 @@
                 <li><a href="#triage">4. 3D 지능형 Triage 자동 배정 로직</a></li>
                 <li><a href="#flow">5. 데이터 파이프라인 흐름도</a></li>
                 <li><a href="#spec">6. 시스템 기술 스펙</a></li>
-                <li><a href="#value">7. 비즈니스 효과 및 미래 로드맵</a></li>
+                <li><a href="#quality">7. 시스템 핵심 품질 개선 사항 (QE)</a></li>
+                <li><a href="#value">8. 비즈니스 효과 및 미래 로드맵</a></li>
             </ul>
         </aside>
 
@@ -669,23 +670,23 @@
                     <div class="matrix-grid-3d">
                         <!-- headers -->
                         <div class="matrix-cell matrix-header" style="background: transparent !important; border: none;"></div>
-                        <div class="matrix-cell matrix-header">법적조치 (대외)</div>
+                        <div class="matrix-cell matrix-header">법적/민원제기 (대외)</div>
                         <div class="matrix-cell matrix-header">언론제보 (대외)</div>
-                        <div class="matrix-cell matrix-header">정상 문의 (대외)</div>
+                        <div class="matrix-cell matrix-header" style="background: rgba(16, 185, 129, 0.15) !important; border-color: rgba(16, 185, 129, 0.3) !important; color: #34d399;">정상 문의 (대외)</div>
                         
                         <!-- row 1: 식품변질 -->
                         <div class="matrix-cell matrix-row-label">식품변질/건강위해<br>(위험 - 생물학)</div>
                         <div class="matrix-cell matrix-active-cell" style="background: rgba(244, 63, 94, 0.08); border-color: var(--danger);">
                             <strong>🚨 생물위해 법적대응</strong>
                             <span class="cell-tag tag-danger">위험: 식품변질/위해</span>
-                            <span class="cell-tag tag-external">대외: 법적조치</span>
+                            <span class="cell-tag tag-external">대외: 법적/민원제기</span>
                         </div>
                         <div class="matrix-cell">
                             식중독 공론화 위협
                             <span class="cell-tag tag-danger">위험: 식품변질/위해</span>
                             <span class="cell-tag tag-external">대외: 언론제보</span>
                         </div>
-                        <div class="matrix-cell">
+                        <div class="matrix-cell" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.25);">
                             위생 변질 변상 문의
                             <span class="cell-tag tag-danger">위험: 식품변질/위해</span>
                             <span class="cell-tag tag-normal">대외: 정상 문의</span>
@@ -696,14 +697,14 @@
                         <div class="matrix-cell">
                             이물 혼입 민형사 고소
                             <span class="cell-tag tag-danger">위험: 이물질 상품</span>
-                            <span class="cell-tag tag-external">대외: 법적조치</span>
+                            <span class="cell-tag tag-external">대외: 법적/민원제기</span>
                         </div>
                         <div class="matrix-cell">
                             이물 발견 커뮤니티 전파
                             <span class="cell-tag tag-danger">위험: 이물질 상품</span>
                             <span class="cell-tag tag-external">대외: 언론제보</span>
                         </div>
-                        <div class="matrix-cell">
+                        <div class="matrix-cell" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.25);">
                             단순 이물 교환 요청
                             <span class="cell-tag tag-danger">위험: 이물질 상품</span>
                             <span class="cell-tag tag-normal">대외: 정상 문의</span>
@@ -714,32 +715,32 @@
                         <div class="matrix-cell">
                             점포 부상 피해 소송
                             <span class="cell-tag tag-danger">위험: 안전사고</span>
-                            <span class="cell-tag tag-external">대외: 법적조치</span>
+                            <span class="cell-tag tag-external">대외: 법적/민원제기</span>
                         </div>
                         <div class="matrix-cell">
                             매장 시설 결함 폭로
                             <span class="cell-tag tag-danger">위험: 안전사고</span>
                             <span class="cell-tag tag-external">대외: 언론제보</span>
                         </div>
-                        <div class="matrix-cell">
+                        <div class="matrix-cell" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.25);">
                             매장 단순 상해 조치
                             <span class="cell-tag tag-danger">위험: 안전사고</span>
                             <span class="cell-tag tag-normal">대외: 정상 문의</span>
                         </div>
 
                         <!-- row 4: 정상 -->
-                        <div class="matrix-cell matrix-row-label">정상 문의<br>(위험)</div>
-                        <div class="matrix-cell">
+                        <div class="matrix-cell matrix-row-label" style="background: rgba(16, 185, 129, 0.15) !important; border-color: rgba(16, 185, 129, 0.3) !important; color: #34d399;">정상 문의<br>(위험)</div>
+                        <div class="matrix-cell" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.25);">
                             단순 서비스 불만 고소
                             <span class="cell-tag tag-normal">위험: 정상 문의</span>
-                            <span class="cell-tag tag-external">대외: 법적조치</span>
+                            <span class="cell-tag tag-external">대외: 법적/민원제기</span>
                         </div>
-                        <div class="matrix-cell">
+                        <div class="matrix-cell" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.25);">
                             단순 불친절 SNS 게시
                             <span class="cell-tag tag-normal">위험: 정상 문의</span>
                             <span class="cell-tag tag-external">대외: 언론제보</span>
                         </div>
-                        <div class="matrix-cell" style="background: rgba(16, 185, 129, 0.05); border-color: var(--accent);">
+                        <div class="matrix-cell" style="background: rgba(16, 185, 129, 0.15); border-color: var(--accent);">
                             <strong>🟢 일반 민원 안건</strong>
                             <span class="cell-tag tag-normal">일반 단순 문의</span>
                         </div>
@@ -755,14 +756,14 @@
                 <span class="section-tag">Orthogonal NLP</span>
                 <h2>3. 형태소 기반 구문 스캔 & Orthogonal 카테고리화</h2>
                 <p>
-                    텍스트의 잠재 위험 분류 지표의 명확성을 위해 기존의 '법적 이슈'를 위험 축에서 전격 제외하여 대외 압박(법적조치)과의 중복 판정을 배제하고, Danger 축은 오로지 물리적/생물학적 위해 상황만을 독립적으로 측정하도록 정비하였습니다.
+                    텍스트의 잠재 위험 분류 지표의 명확성을 위해 기존의 '법적 이슈'를 위험 축에서 전격 제외하여 대외 압박(법적/민원제기)과의 중복 판정을 배제하고, Danger 축은 오로지 물리적/생물학적 위해 상황만을 독립적으로 측정하도록 정비하였습니다.
                 </p>
 
                 <div class="compare-box">
                     <div class="compare-side con">
                         <div class="compare-title">❌ 기존 위험 카테고리 중복 구조</div>
                         <ul class="compare-list">
-                            <li>위험 축에 '법적 이슈' 존재 ➔ 대외 축의 '법적조치'와 의미론적 오버랩 발생</li>
+                            <li>위험 축에 '법적 이슈' 존재 ➔ 대외 축의 '법적/민원제기'와 의미론적 오버랩 발생</li>
                             <li>식중독(생물 위해)과 유리조각(물리 혼입)을 전부 '이물질 상품'으로 묶음</li>
                             <li>단일 최댓값(Hard-Max) 출력으로 인해 co-occurrence 요소 소멸 및 누락</li>
                         </ul>
@@ -770,7 +771,7 @@
                     <div class="compare-side pro">
                         <div class="compare-title">✅ 개편된 Orthogonal & Multi-Label 분류</div>
                         <ul class="compare-list">
-                            <li>'법적 이슈'는 <strong>대외 축(법적조치)</strong>으로만 단일 타겟화하여 독립성 100% 확보</li>
+                            <li>'법적 이슈'는 <strong>대외 축(법적/민원제기)</strong>으로만 단일 타겟화하여 독립성 100% 확보</li>
                             <li><strong>식품위생</strong> 카테고리를 독자 신설하여 식중독/알레르기 정밀 탐지</li>
                             <li><strong>이물질 상품</strong> 카테고리는 철저하게 물리적 혼입(쇳조각, 벌레)만 엄격 조준</li>
                             <li>임계치를 통과한 모든 위협 항목을 <strong>배열 형태(detected_categories JSON)</strong>로 다중 검출</li>
@@ -954,10 +955,57 @@
                 </div>
             </section>
 
-            <!-- 7. Value & Future Roadmap -->
+            <!-- 7. Quality Engineering -->
+            <section id="quality" class="section">
+                <span class="section-tag">Quality & Performance</span>
+                <h2>7. 시스템 핵심 품질 개선 사항 (Quality Engineering)</h2>
+                <p>
+                    3D 다차원 Triage 및 실시간 분석 시스템의 비즈니스 안정성과 고성능 처리를 만족시키기 위해 소프트웨어 아키텍처 및 알고리즘 차원에서 설계된 핵심 품질 엔지니어링 항목입니다.
+                </p>
+
+                <div class="quality-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">
+                    <div style="background: rgba(30, 41, 59, 0.3); border: 1px solid var(--border); padding: 1.5rem; border-radius: 8px;">
+                        <h4 style="color: #ec4899; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem;">
+                            🛡️ 1. Orthogonal 격리 분류 (위해 vs 대외)
+                        </h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin-top: 0.25rem;">
+                            물리적 혼입이 우려되는 '이물질 상품' 리스크와 식중독/병원 치료를 유발하는 '식품위생' 리스크를 완벽히 직교(Orthogonal) 격리 설계했습니다. 이를 통해 하나의 위해 카테고리가 다른 카테고리에 노이즈를 유발하지 않으며, 특정 위험에 특화된 비상 컴플라이언스 배포망을 병렬로 작동시킵니다.
+                        </p>
+                    </div>
+
+                    <div style="background: rgba(30, 41, 59, 0.3); border: 1px solid var(--border); padding: 1.5rem; border-radius: 8px;">
+                        <h4 style="color: #60a5fa; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem;">
+                            🔗 2. Dual-Guideline 임베딩 시너지 융합
+                        </h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin-top: 0.25rem;">
+                            본문의 최고 유사도 위험 가이드라인 임베딩과 대외 이슈 가이드라인 임베딩을 추출 쿼리에 동적으로 가중 결합(가중치: 0.35)하는 아키텍처를 도입했습니다. 단순 문맥 매칭을 탈피하여 위해 단어가 빈번히 중첩되더라도 비정상적인 우선순위 희석 없이 고위험 키워드 구문을 정밀 추출합니다.
+                        </p>
+                    </div>
+
+                    <div style="background: rgba(30, 41, 59, 0.3); border: 1px solid var(--border); padding: 1.5rem; border-radius: 8px;">
+                        <h4 style="color: #10b981; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem;">
+                            📊 3. BGE-M3 기반 키워드 스코어링 & 세부 툴팁
+                        </h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin-top: 0.25rem;">
+                            단어 빈도수 중심의 전통적인 KeyBERT 방식을 업그레이드하여, 다국어 임베딩 BGE-M3 모델 기반의 '본문 연관성(Score)' 및 '위험 부합도(Risk Score)'를 정교하게 융합한 스코어링을 실현했습니다. 키워드 태그 위 마우스 오버 시 두 차원의 유사도가 실시간 시각적 게이지로 역동적으로 시각화됩니다.
+                        </p>
+                    </div>
+
+                    <div style="background: rgba(30, 41, 59, 0.3); border: 1px solid var(--border); padding: 1.5rem; border-radius: 8px;">
+                        <h4 style="color: #f59e0b; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem;">
+                            ⚡ 4. Celery & Redis 분산 비동기 파이프라인
+                        </h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin-top: 0.25rem;">
+                            대용량 데이터베이스 입력 및 분석 처리 시 발생하는 프론트엔드 병목을 완전히 제거하기 위해 Celery 워커 및 Redis 브로커 기반의 비동기 메시지 대기열 아키텍처를 전격 도입했습니다. 실시간 응답과 무거운 백그라운드 AI 연산을 분리함으로써 병목 현상 Zero 상태를 달성했습니다.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 8. Value & Future Roadmap -->
             <section id="value" class="section" style="margin-bottom: 0;">
                 <span class="section-tag">Value Proposition</span>
-                <h2>7. 비즈니스 효과 및 미래 로드맵</h2>
+                <h2>8. 비즈니스 효과 및 미래 로드맵</h2>
                 <p>
                     3D 다차원 Triage 배정 엔진은 단순한 데이터 분석 툴이 아닌, 고객 피해 상황을 즉각 파악하여 전사 컴플라이언스 비상 조직을 자동 가동시키는 <strong>스마트 기업 위기대응 센터</strong>로서 작동합니다.
                 </p>

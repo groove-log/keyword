@@ -24,7 +24,7 @@ class SyncExtractRequest(BaseModel):
     text: str
     ngram_min: int = 1
     ngram_max: int = 3
-    top_n: int = 8
+    top_n: int = 5
     thresholds: dict[str, float] = None  # UI에서 조정하여 전달하는 커스텀 임계값
     linked_threshold: float = None      # UI에서 조정하는 커스텀 연관 키워드 임계값
     min_safeguard_score: float = None   # UI에서 조정하는 커스텀 안전 제한 임계값

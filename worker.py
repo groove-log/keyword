@@ -82,6 +82,32 @@ class KeywordExtractor:
         raw = data[0]["embedding"]
         return raw[0] if isinstance(raw[0], list) else raw
 
+    def _get_embeddings_batch(self, texts: list[str]) -> list[list[float]]:
+        """여러 텍스트 후보군들의 임베딩 벡터를 단 1회의 HTTP 배치 요청으로 획득하여 병목 완벽 제거"""
+        if not texts:
+            return []
+        
+        # v1 모드일 때만 표준 배치 임베딩 제공 (legacy일 경우 빈 리스트로 튕겨 예외 처리 우도)
+        if self.mode != "v1":
+            raise NotImplementedError("Batch embedding is only supported in v1 mode.")
+
+        payload = {
+            "input": texts,
+            "model": "bge-m3"
+        }
+        resp = requests.post(
+            self.endpoint,
+            headers=self.headers,
+            json=payload,
+            timeout=30,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+        # 순서대로 1대1 매핑하여 반환
+        return [item["embedding"] for item in data["data"]]
+
+
     def _extract_candidates(
         self, text: str, ngram_range: tuple[int, int]
     ) -> list[str]:
@@ -265,10 +291,34 @@ class KeywordExtractor:
             if doc_external_level and doc_external_level != "정상 문의" and doc_external_level in classifier.cached_external_embeddings:
                 guide_embs.append(classifier.cached_external_embeddings[doc_external_level])
 
-        # 후보별 임베딩 획득 + 유사도 계산
+        # 후보별 임베딩 획득 + 유사도 계산 (이중 안전망 내장형 청크 배치 처리 적용)
+        cand_embs = []
+        try:
+            # 1단계: 32개씩 안전하게 쪼개어 배치로 초고속 획득 (VRAM 초과 원천 차단)
+            chunk_size = 32
+            for i in range(0, len(candidates), chunk_size):
+                chunk = candidates[i:i + chunk_size]
+                chunk_embs = self._get_embeddings_batch(chunk)
+                cand_embs.extend(chunk_embs)
+                
+            # 후보군과 임베딩 개수가 일치하지 않을 경우 예외 강제 발생시켜 플랜 B 작동 유도
+            if len(cand_embs) != len(candidates):
+                raise ValueError("Batch embeddings count mismatch.")
+                
+        except Exception as e:
+            # 2단계: 실패 시 즉시 개별 호출로 안전하게 자동 우회 롤백 (Fallback)
+            print(f"⚠️ 배치 임베딩 실패! 안전한 개별 직렬 호출(플랜 B)로 즉각 우회합니다. 원인: {e}")
+            cand_embs = []
+            for candidate in candidates:
+                try:
+                    cand_embs.append(self._get_embedding(candidate))
+                except Exception as single_err:
+                    # 특정 텍스트 에러 시 0.0 벡터로 처리하여 전체 루프 보존
+                    print(f" ➔ [경고] 단일 단어 '{candidate}' 임베딩 오류 무시 처리: {single_err}")
+                    cand_embs.append([0.0] * 1024)
+
         scored: list[tuple[str, float]] = []
-        for candidate in candidates:
-            cand_emb = self._get_embedding(candidate)
+        for candidate, cand_emb in zip(candidates, cand_embs):
             # 1. 문서 전체와의 유사도 (기본 KeyBERT 점수)
             base_score = self._cosine_similarity(doc_emb, cand_emb)
             
@@ -342,9 +392,8 @@ DEFAULT_DANGER_GUIDELINES = {
 }
 
 DEFAULT_EXTERNAL_GUIDELINES = {
-    "법적조치": "자사나 매장, 직원을 대상으로 직접적인 법적 처벌이나 소송을 제기하겠다고 언급하거나 고소, 고발 진행 및 예정, 변호사 자문 및 소송 준비 등의 의지를 표현하는 상황입니다. 경찰 고소, 민사 소송 제기, 법정 대응, 법적 처벌 요구, 내용증명 발송, 소송 준비를 하겠다, 법원 고소하겠다는 발언 및 소송장 접수, 고소하겠다는 발언을 포함합니다.",
-    "언론제보": "외부 언론사(방송국, 뉴스 등) 및 미디어(유튜브, SNS, 커뮤니티 등)에 해당 사실을 제보하여 사회적 이슈로 공론화하겠다고 경고하거나 언급하는 상황입니다. 언론에 제보하겠다, 방송에 알리겠다, 인터넷이나 유튜브에 올리겠다는 발언을 포함합니다.",
-    "이슈제기": "소비자원, 소비자보호원, 구청, 시청, 식약처, 소방서 등 관할 관공서나 공공기관에 공식 민원 제기, 불법 적치물 신고, 위생 단속 요구 등 법제상 문제를 제기하고 신고 및 고발하겠다고 언급하는 상황입니다. 소비자보호원 접수, 소비자보호원 민원, 구청에 정식 신고하겠다, 과태료를 물게 하겠다, 식약처에 신고하겠다는 발언 및 공공기관 신고, 소보원 접수 예정을 포함합니다."
+    "법적/민원제기": "자사나 매장, 직원을 대상으로 직접적인 법적 소송, 고소, 고발을 제기하겠다고 경고하거나 변호사 자문 및 소송 준비 등의 의지를 표현하는 상황, 또는 소비자원, 소비자보호원, 식약처, 구청, 시청, 소방서 등 관할 관공서나 공공기관에 정식으로 불만 민원을 접수하고 신고하여 행정적 단속이나 처벌 및 피해 보상을 요구하겠다고 경고하고 제기하는 상황을 모두 포함합니다.",
+    "언론제보": "외부 언론사(방송국, 뉴스 등) 및 미디어(유튜브, SNS, 인터넷 커뮤니티 등)에 해당 사실을 제보하여 사회적 이슈로 공론화하겠다고 경고하거나 언급하는 상황입니다."
 }
 
 DEFAULT_DANGER_THRESHOLDS = {
@@ -353,9 +402,8 @@ DEFAULT_DANGER_THRESHOLDS = {
     "이물질 상품": 0.60,
     "식품위생": 0.55,
     "안전사고": 0.55,
-    "법적조치": 0.52,
-    "언론제보": 0.52,
-    "이슈제기": 0.52
+    "법적/민원제기": 0.52,
+    "언론제보": 0.52
 }
 
 import json
@@ -412,9 +460,8 @@ class SemanticClassifier:
             "이물질 상품": ["벌레", "초파리", "바퀴벌레", "유해물", "혼입", "쥐", "쥐머리", "이물질", "머리카락", "손톱", "쇳조각", "유리"],
             "식품위생": ["식중독", "장염", "배탈", "복통", "설사", "구토", "알레르기", "알러지", "곰팡이", "쉰내", "부패", "상함", "변질", "쉰", "두드러기", "가려움", "호흡곤란"],
             # 외부 이슈
-            "법적조치": ["고소", "고발", "소송", "신고", "과태료", "벌금", "처벌", "피해 보상", "내용증명", "소환", "고발장", "고소장", "법원", "변호사", "법적", "재판", "경찰", "소송장", "고소하겠다", "고발하겠다"],
-            "언론제보": ["제보", "언론사", "기자", "뉴스", "방송", "유튜브", "커뮤니티", "인터넷", "인스타", "보도"],
-            "이슈제기": ["소비자원", "소비자보호원", "소보원", "구청", "시청", "식약처", "소방서", "관공서", "공공기관", "민원", "접수", "신고", "고발", "위생과", "단속", "신고하겠다", "접수하겠다"]
+            "법적/민원제기": ["고소", "고발", "소송", "신고", "과태료", "벌금", "처벌", "피해 보상", "내용증명", "소환", "고발장", "고소장", "법원", "변호사", "법적", "재판", "경찰", "소송장", "고소하겠다", "고발하겠다", "소비자원", "소비자보호원", "소보원", "구청", "시청", "식약처", "소방서", "관공서", "공공기관", "민원", "접수", "신고", "고발", "위생과", "단속", "신고하겠다", "접수하겠다"],
+            "언론제보": ["제보", "언론사", "기자", "뉴스", "방송", "유튜브", "커뮤니티", "인터넷", "인스타", "보도"]
         }
 
     def _ensure_cached(self):
@@ -681,7 +728,7 @@ def process_keyword_extraction(
         keywords_with_scores = extractor.extract_keywords(
             text,
             keyphrase_ngram_range=(1, 3),  # 1단어 ~ 3단어 수준의 구문 도출
-            top_n=8,
+            top_n=5,
             doc_risk_level=risk_level,
             doc_external_level=external_issue,
             classifier=classifier,

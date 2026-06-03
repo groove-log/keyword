@@ -338,8 +338,9 @@
         }
 
         th, td {
-            padding: 1rem;
+            padding: 1.1rem 1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: middle;
         }
 
         th {
@@ -348,8 +349,16 @@
             font-weight: 600;
         }
 
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.015);
+        }
+
         td.text-col {
-            max-width: 220px;
+            max-width: 280px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -363,6 +372,52 @@
         td.text-col-clickable:hover {
             color: #a5b4fc !important;
             background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Modern Premium Reanalysis Action Button */
+        .btn-reanalyze {
+            padding: 0.35rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(99, 102, 241, 0.1) !important;
+            border: 1px solid rgba(99, 102, 241, 0.3) !important;
+            color: #a5b4fc !important;
+            border-radius: 9999px !important;
+            width: 32px !important;
+            height: 32px !important;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-reanalyze:hover {
+            background: rgba(99, 102, 241, 0.25) !important;
+            border-color: rgba(165, 180, 252, 0.8) !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.45) !important;
+            transform: scale(1.1) rotate(15deg);
+        }
+
+        .btn-reanalyze:active {
+            transform: scale(0.95);
+        }
+
+        .btn-reanalyze .refresh-icon {
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .btn-reanalyze:hover .refresh-icon {
+            transform: rotate(180deg);
+        }
+
+        @keyframes icon-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .refresh-icon.spinning {
+            animation: icon-spin 1s linear infinite !important;
         }
 
         .status-badge {
@@ -629,37 +684,37 @@
         }
 
         .word-cloud-badge-danger {
-            background: rgba(239, 68, 68, 0.08) !important;
-            border: 1.5px solid rgba(239, 68, 68, 0.6) !important;
-            color: #ffffff !important;
+            background: rgba(254, 226, 226, 0.12) !important;
+            border: 1.5px solid #f87171 !important;
+            color: #fee2e2 !important;
             font-weight: 700 !important;
-            font-size: 1.15rem !important;
-            padding: 0.75rem 1.4rem !important;
+            font-size: 1.05rem !important;
+            padding: 0.7rem 1.3rem !important;
             animation: float 4s ease-in-out infinite, neonPulse 2s infinite alternate !important;
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2) !important;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.25) !important;
         }
 
         .word-cloud-badge-danger:hover {
-            border-color: rgba(239, 68, 68, 0.95) !important;
-            background: rgba(239, 68, 68, 0.18) !important;
-            box-shadow: 0 0 25px rgba(239, 68, 68, 0.45) !important;
+            border-color: #ef4444 !important;
+            background: rgba(239, 68, 68, 0.2) !important;
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.5) !important;
         }
 
         .word-cloud-badge-external {
-            background: rgba(139, 92, 246, 0.08) !important;
-            border: 1.5px solid rgba(139, 92, 246, 0.6) !important;
-            color: #ffffff !important;
+            background: rgba(243, 232, 255, 0.12) !important;
+            border: 1.5px solid #c084fc !important;
+            color: #f3e8ff !important;
             font-weight: 700 !important;
-            font-size: 1.15rem !important;
-            padding: 0.75rem 1.4rem !important;
+            font-size: 1.05rem !important;
+            padding: 0.7rem 1.3rem !important;
             animation: float 4s ease-in-out infinite, purplePulse 2s infinite alternate !important;
-            box-shadow: 0 0 15px rgba(139, 92, 246, 0.2) !important;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.25) !important;
         }
 
         .word-cloud-badge-external:hover {
-            border-color: rgba(139, 92, 246, 0.95) !important;
-            background: rgba(139, 92, 246, 0.18) !important;
-            box-shadow: 0 0 25px rgba(139, 92, 246, 0.45) !important;
+            border-color: #a855f7 !important;
+            background: rgba(139, 92, 246, 0.2) !important;
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.5) !important;
         }
 
         /* Hover Tooltip / Popover */
@@ -885,8 +940,8 @@
                     <label for="topn-select">추출 개수 (Top N)</label>
                     <select id="topn-select">
                         <option value="3">상위 3개 키워드</option>
-                        <option value="5">상위 5개 키워드</option>
-                        <option value="8" selected>상위 8개 키워드</option>
+                        <option value="5" selected>상위 5개 키워드 (권장)</option>
+                        <option value="8">상위 8개 키워드</option>
                     </select>
                 </div>
             </div>
@@ -994,20 +1049,19 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 6%">ID</th>
-                        <th style="width: 14%">상담 내용</th>
-                        <th style="width: 20%">추출된 키워드</th>
+                        <th style="width: 5%">ID</th>
+                        <th style="width: 22%">상담 내용</th>
+                        <th style="width: 27%">추출된 키워드</th>
                         <th style="width: 12%; text-align: center;">위험이슈 판별</th>
                         <th style="width: 12%; text-align: center;">대외이슈 판별</th>
-                        <th style="width: 10%; text-align: center;">시급성 (Z축)</th>
+                        <th style="width: 11%; text-align: center;">시급성 (Z축)</th>
                         <th style="width: 5%; text-align: center;">상태</th>
-                        <th style="width: 5%">시간</th>
-                        <th style="width: 16%; text-align: center;">작업</th>
+                        <th style="width: 6%; text-align: center;">작업</th>
                     </tr>
                 </thead>
                 <tbody id="db-logs-body">
                     <tr>
-                        <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                        <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">
                             데이터를 불러오는 중입니다...
                         </td>
                     </tr>
@@ -1572,10 +1626,12 @@
     // 5.5. 건별 재분석 요청 함수
     async function triggerReanalysis(counselingId, buttonEl) {
         // 버튼 로딩 상태 전환
-        const originalHTML = buttonEl.innerHTML;
+        const iconEl = buttonEl.querySelector('.refresh-icon');
         buttonEl.disabled = true;
-        buttonEl.innerHTML = "⏳ 진행중";
         buttonEl.style.opacity = "0.7";
+        if (iconEl) {
+            iconEl.classList.add('spinning');
+        }
         
         try {
             const response = await fetch(`/api/reanalyze/${counselingId}`, {
@@ -1599,8 +1655,10 @@
             showToast("❌ 네트워크 오류", "서버와 통신할 수 없습니다.", false);
         } finally {
             buttonEl.disabled = false;
-            buttonEl.innerHTML = originalHTML;
             buttonEl.style.opacity = "1";
+            if (iconEl) {
+                iconEl.classList.remove('spinning');
+            }
         }
     }
 
@@ -1654,7 +1712,7 @@
             if (logs.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                        <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">
                             등록된 상담 기록이 없습니다.
                         </td>
                     </tr>
@@ -1665,9 +1723,13 @@
             tbody.innerHTML = "";
             logs.forEach(log => {
                 const tr = document.createElement("tr");
-                
-                const statusClass = log.status.toLowerCase() === "completed" ? "status-completed" : "status-pending";
-                const statusText = log.status === "COMPLETED" ? "완료" : "대기중";
+                tr.style.cursor = "pointer";
+                tr.title = "클릭하여 실시간 3D 분석 결과 시각화";
+                tr.onclick = (e) => {
+                    // 버튼이나 상세 팝업 아이콘 클릭 시 행 선택 차단
+                    if (e.target.closest('button') || e.target.closest('.text-col-clickable')) return;
+                    viewHistoricalResult(log.id);
+                };
                 
                 // 키워드 영역 스마트 파싱 (JSON과 기존 콤마분리 텍스트 호환성 지원)
                 let keywordsHTML = "";
@@ -1678,7 +1740,7 @@
                             keywordsHTML = `<div class="keyword-badge-container">`;
                             parsed.forEach(item => {
                                 const isNormalWord = item.risk_category === "정상";
-                                const isExternalWord = ["법적조치", "언론제보", "이슈제기"].includes(item.risk_category);
+                                const isExternalWord = ["법적/민원제기", "언론제보"].includes(item.risk_category);
                                 
                                 let wordBadgeClass = "badge-keyword-normal";
                                 if (isExternalWord) {
@@ -1695,10 +1757,8 @@
                                             ${item.risk_category}
                                         </span>
                                     </span>
-                                bagHTML`;
+                                `;
                             });
-                            // Fix bagHTML typo below
-                            keywordsHTML = keywordsHTML.replace(/bagHTML/g, "");
                             keywordsHTML += `</div>`;
                         } else {
                             keywordsHTML = log.keywords;
@@ -1723,90 +1783,96 @@
                     }
                 }
                 
-                // 위험이슈 다중/단일 배지 HTML 생성
+                // 위험이슈 다중/단일 배지 HTML 생성 (정상 상태는 미니멀 도트로 시각적 노이즈 제거)
                 if (detectedJson && detectedJson.danger && detectedJson.danger.length > 0) {
                     dangerBadgesHTML = `<div style="display: flex; flex-direction: column; gap: 0.25rem; align-items: center;">`;
                     detectedJson.danger.forEach(item => {
                         const isNormal = item.category === "정상 문의";
-                        const riskClass = isNormal ? "risk-normal" : "risk-danger";
-                        const riskIcon = isNormal ? "🟢 " : "⚠️ ";
-                        let styleStr = "";
-                        if (!isNormal && item.primary) {
-                            styleStr = "box-shadow: 0 0 6px rgba(239, 68, 68, 0.4); border: 1.5px solid rgba(239, 68, 68, 0.6); font-weight: bold;";
+                        if (isNormal) {
+                            dangerBadgesHTML += `<span style="color: var(--text-muted); font-size: 0.72rem; display: inline-flex; align-items: center; gap: 0.25rem;"><span style="color: #10b981; font-size: 0.6rem;">●</span> 정상 (${Math.round(item.score * 100)}%)</span>`;
+                        } else {
+                            const riskClass = "risk-danger";
+                            const riskIcon = "⚠️ ";
+                            let styleStr = "";
+                            if (item.primary) {
+                                styleStr = "box-shadow: 0 0 6px rgba(239, 68, 68, 0.4); border: 1.5px solid rgba(239, 68, 68, 0.6); font-weight: bold;";
+                            }
+                            dangerBadgesHTML += `<span class="status-badge ${riskClass}" style="font-size: 0.72rem; padding: 0.15rem 0.35rem; ${styleStr}">${riskIcon}${item.category} (${Math.round(item.score * 100)}%)</span>`;
                         }
-                        dangerBadgesHTML += `<span class="status-badge ${riskClass}" style="font-size: 0.72rem; padding: 0.15rem 0.35rem; ${styleStr}">${riskIcon}${item.category} (${Math.round(item.score * 100)}%)</span>`;
                     });
                     dangerBadgesHTML += `</div>`;
                 } else {
                     const isNormal = log.risk_level === "정상 문의" || !log.risk_level;
-                    const riskClass = isNormal ? "risk-normal" : "risk-danger";
-                    const riskIcon = isNormal ? "🟢 " : "⚠️ ";
-                    const riskText = log.risk_level ? log.risk_level : "정상 문의";
-                    dangerBadgesHTML = `<span class="status-badge ${riskClass}">${riskIcon}${riskText}</span>`;
+                    if (isNormal) {
+                        dangerBadgesHTML = `<span style="color: var(--text-muted); font-size: 0.72rem; display: inline-flex; align-items: center; gap: 0.25rem;"><span style="color: #10b981; font-size: 0.6rem;">●</span> 정상 문의</span>`;
+                    } else {
+                        const riskText = log.risk_level ? log.risk_level : "정상 문의";
+                        dangerBadgesHTML = `<span class="status-badge risk-danger">⚠️ ${riskText}</span>`;
+                    }
                 }
-
-                // 대외이슈 다중/단일 배지 HTML 생성
+ 
+                // 대외이슈 다중/단일 배지 HTML 생성 (정상 상태는 미니멀 도트로 시각적 노이즈 제거)
                 if (detectedJson && detectedJson.external && detectedJson.external.length > 0) {
                     externalBadgesHTML = `<div style="display: flex; flex-direction: column; gap: 0.25rem; align-items: center;">`;
                     detectedJson.external.forEach(item => {
                         const isNormal = item.category === "정상 문의";
-                        const extClass = isNormal ? "status-completed" : "word-cloud-badge-external-badge";
-                        const extIcon = isNormal ? "🟢 " : "⚡ ";
-                        let styleStr = "";
-                        if (!isNormal && item.primary) {
-                            styleStr = "box-shadow: 0 0 6px rgba(139, 92, 246, 0.4); border: 1.5px solid rgba(139, 92, 246, 0.6); font-weight: bold;";
+                        if (isNormal) {
+                            externalBadgesHTML += `<span style="color: var(--text-muted); font-size: 0.72rem; display: inline-flex; align-items: center; gap: 0.25rem;"><span style="color: #10b981; font-size: 0.6rem;">●</span> 정상 (${Math.round(item.score * 100)}%)</span>`;
+                        } else {
+                            const extClass = "word-cloud-badge-external-badge";
+                            const extIcon = "⚡ ";
+                            let styleStr = "";
+                            if (item.primary) {
+                                styleStr = "box-shadow: 0 0 6px rgba(139, 92, 246, 0.4); border: 1.5px solid rgba(139, 92, 246, 0.6); font-weight: bold;";
+                            }
+                            externalBadgesHTML += `<span class="status-badge ${extClass}" style="font-size: 0.72rem; padding: 0.15rem 0.35rem; ${styleStr}">${extIcon}${item.category} (${Math.round(item.score * 100)}%)</span>`;
                         }
-                        externalBadgesHTML += `<span class="status-badge ${extClass}" style="font-size: 0.72rem; padding: 0.15rem 0.35rem; ${styleStr}">${extIcon}${item.category} (${Math.round(item.score * 100)}%)</span>`;
                     });
                     externalBadgesHTML += `</div>`;
                 } else {
                     const isExtNormal = log.external_issue === "정상 문의" || !log.external_issue;
-                    const extClass = isExtNormal ? "status-completed" : "word-cloud-badge-external-badge";
-                    const extIcon = isExtNormal ? "🟢 " : "⚡ ";
-                    const extText = log.external_issue ? log.external_issue : "정상 문의";
-                    externalBadgesHTML = `<span class="status-badge ${extClass}">${extIcon}${extText}</span>`;
+                    if (isExtNormal) {
+                        externalBadgesHTML = `<span style="color: var(--text-muted); font-size: 0.72rem; display: inline-flex; align-items: center; gap: 0.25rem;"><span style="color: #10b981; font-size: 0.6rem;">●</span> 정상 문의</span>`;
+                    } else {
+                        const extText = log.external_issue ? log.external_issue : "정상 문의";
+                        externalBadgesHTML = `<span class="status-badge word-cloud-badge-external-badge">⚡ ${extText}</span>`;
+                    }
                 }
-
-                // 시급성(Z축) 배지 생성
+ 
+                // 시급성(Z축) 배지 생성 (MONITOR 상태는 잔잔하게 도트로 처리)
                 const normUrgency = (log.urgency_level || "MONITOR").toUpperCase();
-                let urgencyClass = "urgency-monitor";
-                let urgencyIcon = "🟢 ";
-                let urgencyText = "MONITOR";
+                let urgencyHTML = "";
                 
                 if (normUrgency === "IMMEDIATE") {
-                    urgencyClass = "urgency-immediate";
-                    urgencyIcon = "🚨 ";
-                    urgencyText = "IMMEDIATE";
+                    urgencyHTML = `<span class="status-badge urgency-immediate" style="font-size: 0.72rem; padding: 0.15rem 0.35rem; font-weight: 600;">🚨 IMMEDIATE</span>`;
                 } else if (normUrgency === "SHORT-TERM") {
-                    urgencyClass = "urgency-shortterm";
-                    urgencyIcon = "⚠️ ";
-                    urgencyText = "SHORT-TERM";
+                    urgencyHTML = `<span class="status-badge urgency-shortterm" style="font-size: 0.72rem; padding: 0.15rem 0.35rem; font-weight: 600;">⚠️ SHORT-TERM</span>`;
+                } else {
+                    urgencyHTML = `<span style="color: var(--text-muted); font-size: 0.72rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;"><span style="color: #10b981; font-size: 0.6rem;">●</span> MONITOR</span>`;
                 }
-                const urgencyHTML = `<span class="status-badge ${urgencyClass}" style="font-size: 0.72rem; padding: 0.15rem 0.35rem; font-weight: 600;">${urgencyIcon}${urgencyText}</span>`;
-
-                // 작업 버튼 묶음 (조회 및 재분석)
-                let actionButton = `<div style="display: flex; gap: 0.25rem; justify-content: center; align-items: center;">`;
-                if (log.status === "COMPLETED") {
-                    actionButton += `
-                        <button class="btn" style="flex: none; padding: 0.25rem 0.4rem; font-size: 0.75rem; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.1rem;" onclick="viewHistoricalResult(${log.id})">
-                            👁️ 조회
+ 
+                // 단일 고성능 "재분석" 액션 버튼 생성 (조회 버튼을 없애고 둥근 마이크로 회전 SVG 탑재)
+                const actionButton = `
+                    <div style="display: flex; justify-content: center; align-items: center;">
+                        <button class="btn btn-reanalyze" onclick="event.stopPropagation(); triggerReanalysis(${log.id}, this)" title="AI 실시간 재분석 수행">
+                            <svg class="refresh-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
                         </button>
-                    `;
-                }
-                actionButton += `
-                    <button class="btn" style="flex: none; padding: 0.25rem 0.4rem; font-size: 0.75rem; background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.1rem;" onclick="triggerReanalysis(${log.id}, this)">
-                        🔄 재분석
-                    </button>
-                </div>`;
-
-                const truncated = log.text.length > 15 ? log.text.substring(0, 15) + "..." : log.text;
-
+                    </div>
+                `;
+ 
+                const truncated = log.text.length > 25 ? log.text.substring(0, 25) + "..." : log.text;
+                
+                // 완료 상태를 세련된 Vercel/Cloudflare 스타일 도트로 표현
+                const statusHTML = log.status === "COMPLETED" 
+                    ? `<span style="color: #34d399; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;"><span style="color: #10b981; font-size: 0.55rem; animation: pulse 2s infinite;">●</span> 완료</span>`
+                    : `<span style="color: #fbbf24; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;"><span style="color: #fbbf24; font-size: 0.55rem; animation: pulse 1.5s infinite;">●</span> 분석중</span>`;
+ 
                 tr.innerHTML = `
-                    <td>${log.id}</td>
-                    <td class="text-col text-col-clickable" onclick="showTextModal(${log.id})" title="클릭하여 상세 접수내역 보기">
-                        <div style="display: inline-flex; align-items: center; gap: 0.3rem;">
-                            <span>${truncated}</span>
-                            <span style="font-size: 0.7rem; opacity: 0.5; color: #a5b4fc;">🔍</span>
+                    <td style="font-family: monospace; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); text-align: center;">${log.id}</td>
+                    <td class="text-col text-col-clickable" onclick="showTextModal(${log.id}); event.stopPropagation();" title="클릭하여 상세 접수내역 팝업 열기">
+                        <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                            <span style="font-weight: 500;">${truncated}</span>
+                            <span style="font-size: 0.75rem; opacity: 0.6; color: #a5b4fc;">🔍</span>
                         </div>
                     </td>
                     <td>${keywordsHTML}</td>
@@ -1820,9 +1886,8 @@
                         ${urgencyHTML}
                     </td>
                     <td style="text-align: center;">
-                        <span class="status-badge ${statusClass}">${statusText}</span>
+                        ${statusHTML}
                     </td>
-                    <td style="color: var(--text-muted); font-size: 0.8rem;">${log.updated_at ? log.updated_at.substring(11, 19) : ""}</td>
                     <td style="text-align: center;">${actionButton}</td>
                 `;
                 tbody.appendChild(tr);
@@ -1831,6 +1896,7 @@
             console.error("히스토리 갱신 실패", error);
         }
     }
+
 </script>
 
 </body>
