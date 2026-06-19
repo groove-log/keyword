@@ -1035,14 +1035,30 @@
 
     <!-- Bottom Section: DB Live Logs -->
     <div class="panel db-logs-panel">
-        <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
             <span>🗄️ PostgreSQL 데이터베이스 모니터링 (`counseling_data`)</span>
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                <span id="system-health-badge" style="font-size: 0.75rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.3rem;">
+                    <span style="width: 7px; height: 7px; border-radius: 50%; background: #6b7280; display: inline-block;" id="health-dot"></span>
+                    <span id="health-label">시스템 확인 중...</span>
+                </span>
+                <button class="btn" style="flex: none; padding: 0.25rem 0.6rem; font-size: 0.75rem; background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer;" onclick="cleanupPending()" title="1시간 이상 대기 중인 PENDING 기록을 TIMEOUT으로 정리합니다">
+                    🧹 PENDING 정리
+                </button>
                 <button id="btn-reanalyze-all" class="btn btn-primary" style="flex: none; padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 500;" onclick="triggerReanalysisAll()">
                     🔄 전체 재분석
                 </button>
                 <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">* 3초마다 자동 갱신됨</span>
             </div>
+        </div>
+        <!-- 통계 요약 바 -->
+        <div id="stats-bar" style="display: flex; gap: 1.5rem; padding: 0.6rem 0; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); flex-wrap: wrap;">
+            <span style="font-size: 0.78rem; color: var(--text-muted);">전체: <strong id="stat-total" style="color: var(--text-main);">-</strong>건</span>
+            <span style="font-size: 0.78rem; color: #34d399;">완료: <strong id="stat-completed">-</strong></span>
+            <span style="font-size: 0.78rem; color: #fbbf24;">대기중: <strong id="stat-pending">-</strong></span>
+            <span style="font-size: 0.78rem; color: #f87171;">실패: <strong id="stat-failed">-</strong></span>
+            <span style="font-size: 0.78rem; color: #9ca3af;">시간초과: <strong id="stat-timeout">-</strong></span>
+            <span style="font-size: 0.78rem; color: #f87171; margin-left: auto;">🚨 IMMEDIATE: <strong id="stat-immediate">-</strong>건</span>
         </div>
         
         <div class="table-container">
@@ -1097,11 +1113,11 @@
     // 전역 변수: 기본 및 활성 임계값
     let defaultThresholds = {};
     let activeThresholds = {};
-    let fallbackThreshold = 0.60;
-    let defaultLinkedThreshold = 0.45;
-    let activeLinkedThreshold = 0.45;
-    let defaultMinSafeguardScore = 0.52;
-    let activeMinSafeguardScore = 0.52;
+    let fallbackThreshold = 0.20;
+    let defaultLinkedThreshold = 0.10;
+    let activeLinkedThreshold = 0.10;
+    let defaultMinSafeguardScore = 0.15;
+    let activeMinSafeguardScore = 0.15;
     let currentHistoryLogs = [];
 
     // 상세 접수내역 모달 팝업 함수
@@ -1188,9 +1204,9 @@
                 defaultThresholds = { ...data.default_thresholds };
                 activeThresholds = { ...data.default_thresholds };
                 fallbackThreshold = data.fallback_threshold;
-                defaultLinkedThreshold = data.default_linked_threshold !== undefined ? data.default_linked_threshold : 0.45;
+                defaultLinkedThreshold = data.default_linked_threshold !== undefined ? data.default_linked_threshold : 0.10;
                 activeLinkedThreshold = defaultLinkedThreshold;
-                defaultMinSafeguardScore = data.default_min_safeguard_score !== undefined ? data.default_min_safeguard_score : 0.52;
+                defaultMinSafeguardScore = data.default_min_safeguard_score !== undefined ? data.default_min_safeguard_score : 0.15;
                 activeMinSafeguardScore = defaultMinSafeguardScore;
                 renderSliders();
             }
@@ -1352,7 +1368,7 @@
             const data = await response.json();
             
             if (response.ok) {
-                renderResults(data.keywords, data.elapsed_ms, "실시간 동기 분석 (Sync)", data.risk_level, data.external_issue, data.urgency_level, data.detected_categories);
+                renderResults(data.keywords, data.elapsed_ms, "실시간 동기 분석 (Sync)", data.risk_level, data.external_issue, data.urgency_level, data.detected_categories, data);
                 showToast("⚡ 분석 완료", `소요 시간: ${data.elapsed_ms}ms`, true);
             } else {
                 showToast("❌ 에러 발생", data.detail || "분석 실패", false);
@@ -1409,7 +1425,8 @@
     }
 
     // 5. 우측 분석 결과 카드 렌더링 (워드 클라우드 형태)
-    function renderResults(keywords, elapsedMs, modeName, riskLevel, externalIssue, urgencyLevel, detectedCategories) {
+    function renderResults(keywords, elapsedMs, modeName, riskLevel, externalIssue, urgencyLevel, detectedCategories, data) {
+        data = data || {};
         const emptyState = document.getElementById("results-empty");
         const resultsArea = document.getElementById("results-area");
         const kwList = document.getElementById("keyword-list");
@@ -1424,48 +1441,69 @@
         elTime.innerText = elapsedMs;
         runMode.innerText = modeName;
 
-        // SLA 위기 알람 배너 갱신
+        // SLA 위기 알람 배너 갱신 (심각도 점수 반영)
         const alarmBanner = document.getElementById("alarm-banner");
         const alarmIcon = document.getElementById("alarm-icon");
         const alarmText = document.getElementById("alarm-text");
         const alarmDispatchBadge = document.getElementById("alarm-dispatch-badge");
-        
+
         const normUrgency = (urgencyLevel || "MONITOR").toUpperCase();
         const hasDanger = riskLevel && riskLevel !== "정상 문의";
         const hasExternal = externalIssue && externalIssue !== "정상 문의";
         const isSevere = hasDanger || hasExternal;
+        const sevScore = (data.severity && data.severity.score) ? data.severity.score : 1;
+        const sevTone = (data.severity && data.severity.tone) ? data.severity.tone : "neutral";
+        const sevFlags = (data.severity && data.severity.flags) ? data.severity.flags : [];
 
-        if (isSevere) {
-            if (normUrgency === "IMMEDIATE") {
-                // 초긴급 + 위해/대외 위협 동시 발생 -> RED ALERT (PR/법무/품질/CSO)
+        // 심각도 10점 또는 사망/자해 등 critical 키워드 → 무조건 RED
+        if (sevScore === 10 || sevFlags.includes("critical_keyword")) {
+            alarmBanner.className = "alarm-banner alarm-red";
+            alarmIcon.innerText = "🚨";
+            alarmText.innerText = "CRITICAL ALERT — 즉각 대응 필요 (심각도 10/10)";
+            alarmDispatchBadge.innerText = "CSO / 법무 / PR 즉각 에스컬레이션";
+        } else if (isSevere) {
+            if (normUrgency === "IMMEDIATE" || sevScore >= 8) {
                 alarmBanner.className = "alarm-banner alarm-red";
                 alarmIcon.innerText = "🚨";
-                alarmText.innerText = "IMMEDIATE CRITICAL ALERT (Golden Time < 6h)";
+                alarmText.innerText = `IMMEDIATE CRITICAL ALERT — Golden Time < 6h (심각도 ${sevScore}/10)`;
                 alarmDispatchBadge.innerText = "PR / Legal / QA / CSO 긴급 배정";
             } else {
-                // 위해/대외 위협은 발생했으나 시급성이 SHORT-TERM 또는 MONITOR인 경우 -> AMBER ESCALATION
+                const slaHours = normUrgency === "SHORT-TERM" ? "24h" : "48h";
                 alarmBanner.className = "alarm-banner alarm-amber";
                 alarmIcon.innerText = "⚠️";
-                alarmText.innerText = `SHORT-TERM ESCALATION (SLA < 24h) - Z축: ${normUrgency}`;
-                alarmDispatchBadge.innerText = "CS 총괄 매니저 배정";
+                alarmText.innerText = `ESCALATION ALERT — SLA < ${slaHours} | 심각도 ${sevScore}/10 | 강도: ${sevTone}`;
+                alarmDispatchBadge.innerText = sevScore >= 6 ? "CS 총괄 매니저 배정" : "CS 선임 상담원 배정";
             }
             alarmBanner.style.display = "flex";
         } else {
-            // 위해 및 대외 위협 없음 (내용상 안전)
             if (normUrgency === "IMMEDIATE" || normUrgency === "SHORT-TERM") {
-                // 내용은 정상이나 고객이 신속한 응답 요구 -> CS 파트리더 배정
                 alarmBanner.className = "alarm-banner alarm-amber";
                 alarmIcon.innerText = "⚠️";
-                alarmText.innerText = `SLA RESPONSIVENESS ALERT (SLA < 48h) - Z축: ${normUrgency}`;
+                alarmText.innerText = `SLA RESPONSIVENESS ALERT — SLA < 48h (심각도 ${sevScore}/10)`;
                 alarmDispatchBadge.innerText = "CS 파트 리더 배정";
             } else {
-                // 내용 정상 + 시급성 일반 -> GREEN MONITOR 일반 CS 배정
                 alarmBanner.className = "alarm-banner alarm-green";
                 alarmIcon.innerText = "🟢";
-                alarmText.innerText = "GREEN MONITOR (일반 안건)";
+                alarmText.innerText = "GREEN MONITOR — 일반 안건 (심각도 " + sevScore + "/10)";
                 alarmDispatchBadge.innerText = "고객지원 부서 일반 배정";
             }
             alarmBanner.style.display = "flex";
+        }
+
+        // 심각도 배지 갱신 (있으면 업데이트)
+        let severityEl = document.getElementById("result-severity");
+        if (!severityEl) {
+            severityEl = document.createElement("div");
+            severityEl.id = "result-severity";
+            severityEl.style.cssText = "display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap;";
+            const metaDiv = document.querySelector(".result-meta");
+            if (metaDiv && metaDiv.nextSibling) metaDiv.parentNode.insertBefore(severityEl, metaDiv.nextSibling);
+        }
+        if (data.severity) {
+            const scoreColor = sevScore >= 8 ? "#f87171" : sevScore >= 5 ? "#fbbf24" : "#34d399";
+            const toneLabel = {"aggressive": "공격적", "neutral": "중립", "polite": "정중"}[sevTone] || sevTone;
+            const flagStr = sevFlags.length ? ` · ${sevFlags.map(f=>({critical_keyword:"⚠️위험어",immediate_urgency:"⏱️즉시",aggressive_tone:"😤공격",legal_threat:"⚖️법적",media_threat:"📺언론",high_exclamation:"❗강조",multi_category:"🔴복합"}[f]||f)).join(" ")}` : "";
+            severityEl.innerHTML = `<span style="font-size:0.8rem;color:var(--text-muted);">심각도:</span><span style="font-size:0.85rem;font-weight:700;color:${scoreColor};">${sevScore}/10</span><span style="font-size:0.75rem;color:var(--text-muted);background:rgba(255,255,255,0.06);padding:0.1rem 0.4rem;border-radius:4px;">${toneLabel}${flagStr}</span>`;
         }
 
         // 위험이슈 배지 업데이트
@@ -1548,7 +1586,7 @@
             
             // 키워드별 매칭 여부에 따라 스타일 적용
             const isNormalWord = item.risk_category === "정상";
-            const isExternalWord = ["법적조치", "언론제보", "이슈제기"].includes(item.risk_category);
+            const isExternalWord = ["법적/민원제기", "언론제보"].includes(item.risk_category);
             
             let badgeClass = "word-cloud-badge";
             let badgeIcon = "🟢";
@@ -1636,7 +1674,12 @@
         try {
             const response = await fetch(`/api/reanalyze/${counselingId}`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" }
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    thresholds: activeThresholds,
+                    linked_threshold: activeLinkedThreshold,
+                    min_safeguard_score: activeMinSafeguardScore
+                })
             });
             
             const data = await response.json();
@@ -1644,7 +1687,7 @@
                 showToast("🔄 재분석 완료", `ID ${counselingId}번 상담 내역이 성공적으로 재분석되었습니다.`, true);
                 
                 // 오른쪽에 있는 결과 보기 영역에 이 재분석된 최신 데이터 자동 연동 시각화
-                renderResults(data.keywords, 0, "재분석 완료", data.risk_level, data.external_issue, data.urgency_level, data.detected_categories);
+                renderResults(data.keywords, 0, "재분석 완료", data.risk_level, data.external_issue, data.urgency_level, data.detected_categories, data);
                 
                 // 하단 모니터링 테이블 갱신
                 refreshHistory();
@@ -1679,7 +1722,12 @@
         try {
             const response = await fetch("/api/reanalyze-all", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" }
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    thresholds: activeThresholds,
+                    linked_threshold: activeLinkedThreshold,
+                    min_safeguard_score: activeMinSafeguardScore
+                })
             });
             
             const data = await response.json();
@@ -1853,19 +1901,28 @@
  
                 // 단일 고성능 "재분석" 액션 버튼 생성 (조회 버튼을 없애고 둥근 마이크로 회전 SVG 탑재)
                 const actionButton = `
-                    <div style="display: flex; justify-content: center; align-items: center;">
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 0.3rem;">
                         <button class="btn btn-reanalyze" onclick="event.stopPropagation(); triggerReanalysis(${log.id}, this)" title="AI 실시간 재분석 수행">
                             <svg class="refresh-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
                         </button>
+                        <button style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:4px;color:var(--text-muted);cursor:pointer;padding:0.2rem 0.35rem;font-size:0.7rem;transition:all 0.2s;" onclick="event.stopPropagation(); submitFeedback(${log.id}, true)" title="분류 결과가 정확합니다">✓</button>
+                        <button style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:4px;color:#f87171;cursor:pointer;padding:0.2rem 0.35rem;font-size:0.7rem;transition:all 0.2s;" onclick="event.stopPropagation(); submitFeedback(${log.id}, false)" title="오분류 신고">✗</button>
                     </div>
                 `;
  
                 const truncated = log.text.length > 25 ? log.text.substring(0, 25) + "..." : log.text;
                 
                 // 완료 상태를 세련된 Vercel/Cloudflare 스타일 도트로 표현
-                const statusHTML = log.status === "COMPLETED" 
-                    ? `<span style="color: #34d399; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;"><span style="color: #10b981; font-size: 0.55rem; animation: pulse 2s infinite;">●</span> 완료</span>`
-                    : `<span style="color: #fbbf24; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;"><span style="color: #fbbf24; font-size: 0.55rem; animation: pulse 1.5s infinite;">●</span> 분석중</span>`;
+                let statusHTML;
+                if (log.status === "COMPLETED") {
+                    statusHTML = `<span style="color: #34d399; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;"><span style="color: #10b981; font-size: 0.55rem; animation: pulse 2s infinite;">●</span> 완료</span>`;
+                } else if (log.status === "FAILED") {
+                    statusHTML = `<span style="color: #f87171; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;" title="분석 실패 — 재분석 버튼으로 재시도하세요"><span style="color: #ef4444; font-size: 0.55rem;">●</span> 실패</span>`;
+                } else if (log.status === "TIMEOUT") {
+                    statusHTML = `<span style="color: #9ca3af; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;" title="시간 초과 — 재분석 버튼으로 재시도하세요"><span style="color: #6b7280; font-size: 0.55rem;">●</span> 시간초과</span>`;
+                } else {
+                    statusHTML = `<span style="color: #fbbf24; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;"><span style="color: #fbbf24; font-size: 0.55rem; animation: pulse 1.5s infinite;">●</span> 분석중</span>`;
+                }
  
                 tr.innerHTML = `
                     <td style="font-family: monospace; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); text-align: center;">${log.id}</td>
@@ -1896,6 +1953,90 @@
             console.error("히스토리 갱신 실패", error);
         }
     }
+
+    // 7. 피드백 제출
+    async function submitFeedback(counselingId, isCorrect) {
+        try {
+            const res = await fetch(`/api/feedback/${counselingId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ is_correct: isCorrect })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(isCorrect ? "✓ 피드백 감사합니다" : "✗ 오분류 신고 접수", data.message, isCorrect);
+            }
+        } catch (e) {
+            showToast("❌ 피드백 실패", "서버와 통신할 수 없습니다.", false);
+        }
+    }
+
+    // 9. 시스템 헬스 체크
+    async function checkSystemHealth() {
+        try {
+            const res = await fetch("/api/health");
+            const data = await res.json();
+            const dot = document.getElementById("health-dot");
+            const label = document.getElementById("health-label");
+            if (data.status === "ok") {
+                dot.style.background = "#10b981";
+                label.textContent = "시스템 정상";
+                label.style.color = "#34d399";
+            } else {
+                dot.style.background = "#f59e0b";
+                const issues = [];
+                if (data.embedding_server !== "ok") issues.push("임베딩 서버");
+                if (data.database !== "ok") issues.push("DB");
+                label.textContent = `일부 오류: ${issues.join(", ")}`;
+                label.style.color = "#fbbf24";
+            }
+        } catch (e) {
+            document.getElementById("health-dot").style.background = "#ef4444";
+            document.getElementById("health-label").textContent = "서버 연결 불가";
+            document.getElementById("health-label").style.color = "#f87171";
+        }
+    }
+
+    // 8. DB 통계 갱신
+    async function refreshStats() {
+        try {
+            const res = await fetch("/api/stats");
+            if (!res.ok) return;
+            const data = await res.json();
+            document.getElementById("stat-total").textContent = data.total ?? "-";
+            document.getElementById("stat-completed").textContent = data.by_status?.COMPLETED ?? 0;
+            document.getElementById("stat-pending").textContent = data.by_status?.PENDING ?? 0;
+            document.getElementById("stat-failed").textContent = data.by_status?.FAILED ?? 0;
+            document.getElementById("stat-timeout").textContent = data.by_status?.TIMEOUT ?? 0;
+            document.getElementById("stat-immediate").textContent = data.by_urgency?.IMMEDIATE ?? 0;
+        } catch (e) {
+            console.warn("통계 로드 실패", e);
+        }
+    }
+
+    // 9. PENDING 정리
+    async function cleanupPending() {
+        try {
+            const res = await fetch("/api/cleanup-pending", { method: "POST" });
+            const data = await res.json();
+            showToast("🧹 PENDING 정리 완료", data.message, true);
+            refreshHistory();
+            refreshStats();
+        } catch (e) {
+            showToast("❌ 정리 실패", "서버와 통신할 수 없습니다.", false);
+        }
+    }
+
+    // 30초마다 헬스 체크, 통계는 히스토리 갱신과 함께 실행
+    checkSystemHealth();
+    setInterval(checkSystemHealth, 30000);
+
+    // 기존 자동 갱신에 통계 포함
+    const _origRefreshHistory = refreshHistory;
+    refreshHistory = async function() {
+        await _origRefreshHistory();
+        await refreshStats();
+    };
 
 </script>
 

@@ -24,6 +24,12 @@ ALTER TABLE counseling_data ADD COLUMN IF NOT EXISTS external_issue VARCHAR(50) 
 ALTER TABLE counseling_data ADD COLUMN IF NOT EXISTS urgency_level VARCHAR(50) NOT NULL DEFAULT 'MONITOR';
 ALTER TABLE counseling_data ADD COLUMN IF NOT EXISTS detected_categories TEXT;
 
+-- 조회 성능 인덱스 (신규 배포 시 자동 생성, 기존 DB는 수동 실행 필요)
+CREATE INDEX IF NOT EXISTS idx_counseling_status_updated ON counseling_data(status, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_counseling_risk_level ON counseling_data(risk_level);
+CREATE INDEX IF NOT EXISTS idx_counseling_urgency ON counseling_data(urgency_level);
+CREATE INDEX IF NOT EXISTS idx_counseling_created_at ON counseling_data(created_at DESC);
+
 -- 샘플 데이터 삽입 (테이블이 비어있을 때만 샘플 데이터 입력 유도 혹은 기존 4건 안전 삽입)
 -- 여기서는 테이블에 무조건 중복 적재를 피하기 위해 간단히 테이블이 비었는지 확인 후 삽입하는 구조로 개선할 수도 있지만,
 -- 하위 호환성을 유지하여 기존 쿼리 포맷대로 안전하게 제공합니다.

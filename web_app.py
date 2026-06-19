@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import logging
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -8,6 +9,8 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 import psycopg
 from dotenv import load_dotenv
+
+logger = logging.getLogger("keyword_webapp")
 
 # worker 모듈에서 기존에 구성된 DB 연결 및 키워드 추출기 불러오기
 from worker import extractor, process_keyword_extraction, get_db_connection, classifier
@@ -79,10 +82,15 @@ async def extract_sync(req: SyncExtractRequest):
         external_issue = externals[0][0]
         ext_score = externals[0][1]
         
+        # 심각도 판정
+        all_risk_cats = [cat for cat, _ in dangers]
+        severity = classifier.classify_severity(req.text, all_risk_cats, urgency_level)
+
         # 다중 매핑 스키마 메타데이터 구조화
         detected_json = {
             "danger": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(dangers)],
-            "external": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(externals)]
+            "external": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(externals)],
+            "severity": severity
         }
 
         # 2. BGE-m3 임베딩 서버 호출 및 유사도 계산 진행 (듀얼 가이드 결합 적용)
@@ -128,6 +136,7 @@ async def extract_sync(req: SyncExtractRequest):
             "external_issue": external_issue,
             "external_score": round(ext_score, 4),
             "urgency_level": urgency_level,
+            "severity": severity,
             "detected_categories": detected_json
         }
     except Exception as e:
@@ -213,12 +222,18 @@ async def get_history():
         raise HTTPException(status_code=500, detail=f"DB 조회 실패: {str(e)}")
 
 # 5. 건별 재분석 API
+class ReanalyzeRequest(BaseModel):
+    thresholds: dict[str, float] = None
+    linked_threshold: float = None
+    min_safeguard_score: float = None
+
 @app.post("/api/reanalyze/{counseling_id}")
-async def reanalyze_case(counseling_id: int):
+async def reanalyze_case(counseling_id: int, req: ReanalyzeRequest = None):
+    req = req or ReanalyzeRequest()
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        
+
         # 1. 기존 데이터 조회
         cur.execute("SELECT text FROM counseling_data WHERE id = %s;", (counseling_id,))
         row = cur.fetchone()
@@ -226,14 +241,14 @@ async def reanalyze_case(counseling_id: int):
             cur.close()
             conn.close()
             raise HTTPException(status_code=404, detail="해당 상담 기록을 찾을 수 없습니다.")
-            
+
         text = row[0]
         cur.close()
         conn.close()
-        
+
         # 2. 실시간 판별 및 키워드 추출 진행 (구문 추출 + 듀얼가이드 + 중복제거 적용)
-        dangers = classifier.classify_danger(text)
-        externals = classifier.classify_external(text)
+        dangers = classifier.classify_danger(text, req.thresholds)
+        externals = classifier.classify_external(text, req.thresholds)
         urgency_level = classifier.classify_urgency(text)
         
         risk_level = dangers[0][0]
@@ -242,13 +257,17 @@ async def reanalyze_case(counseling_id: int):
         external_issue = externals[0][0]
         ext_score = externals[0][1]
         
+        all_risk_cats = [cat for cat, _ in dangers]
+        severity = classifier.classify_severity(text, all_risk_cats, urgency_level)
+
         detected_json = {
             "danger": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(dangers)],
-            "external": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(externals)]
+            "external": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(externals)],
+            "severity": severity
         }
         detected_categories_str = json.dumps(detected_json, ensure_ascii=False)
-        
-        weight_coeff = 0.35
+
+        weight_coeff = float(os.getenv("DANGER_KEYWORD_GUIDE_WEIGHT", "0.35"))
         results = extractor.extract_keywords(
             text=text,
             keyphrase_ngram_range=(1, 3),
@@ -258,13 +277,16 @@ async def reanalyze_case(counseling_id: int):
             classifier=classifier,
             weight_coeff=weight_coeff
         )
-        
+
         keywords = []
         for word, score in results:
             risk_cat, risk_score = classifier.classify_phrase(
-                word, 
-                doc_risk_level=risk_level, 
-                doc_external_level=external_issue
+                word,
+                req.thresholds,
+                doc_risk_level=risk_level,
+                doc_external_level=external_issue,
+                custom_linked_threshold=req.linked_threshold,
+                custom_min_safeguard=req.min_safeguard_score
             )
             keywords.append({
                 "word": word,
@@ -272,15 +294,16 @@ async def reanalyze_case(counseling_id: int):
                 "risk_category": risk_cat,
                 "risk_score": round(risk_score, 4)
             })
-            
+
         keywords_json_str = json.dumps(keywords, ensure_ascii=False)
-        
+
         # 3. DB 업데이트
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("""
-            UPDATE counseling_data 
-            SET keywords = %s, status = 'COMPLETED', risk_level = %s, external_issue = %s, urgency_level = %s, detected_categories = %s, updated_at = NOW() 
+            UPDATE counseling_data
+            SET keywords = %s, status = 'COMPLETED', risk_level = %s, external_issue = %s,
+                urgency_level = %s, detected_categories = %s, updated_at = NOW()
             WHERE id = %s;
         """, (keywords_json_str, risk_level, external_issue, urgency_level, detected_categories_str, counseling_id))
         conn.commit()
@@ -293,41 +316,51 @@ async def reanalyze_case(counseling_id: int):
             "risk_level": risk_level,
             "external_issue": external_issue,
             "urgency_level": urgency_level,
+            "severity": severity,
             "detected_categories": detected_json,
             "keywords": keywords
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"재분석 처리 실패: {str(e)}")
 
 # 6. 전체 재분석 API
+class ReanalyzeAllRequest(BaseModel):
+    thresholds: dict[str, float] = None
+    linked_threshold: float = None
+    min_safeguard_score: float = None
+
 @app.post("/api/reanalyze-all")
-async def reanalyze_all_cases():
+async def reanalyze_all_cases(req: ReanalyzeAllRequest = None):
+    req = req or ReanalyzeAllRequest()
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        
+
         # 1. 기존 전체 데이터 조회
         cur.execute("SELECT id, text FROM counseling_data ORDER BY id ASC;")
         rows = cur.fetchall()
-        
+
         reanalyzed_count = 0
         for counseling_id, text in rows:
-            # 실시간 판별 및 키워드 추출 진행 (구문 추출 + 듀얼가이드 + 중복제거 적용)
-            dangers = classifier.classify_danger(text)
-            externals = classifier.classify_external(text)
+            dangers = classifier.classify_danger(text, req.thresholds)
+            externals = classifier.classify_external(text, req.thresholds)
             urgency_level = classifier.classify_urgency(text)
-            
+
             risk_level = dangers[0][0]
             external_issue = externals[0][0]
-            
+
+            all_risk_cats = [cat for cat, _ in dangers]
+            severity = classifier.classify_severity(text, all_risk_cats, urgency_level)
+
             detected_json = {
                 "danger": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(dangers)],
-                "external": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(externals)]
+                "external": [{"category": cat, "score": round(score, 4), "primary": (idx == 0)} for idx, (cat, score) in enumerate(externals)],
+                "severity": severity
             }
             detected_categories_str = json.dumps(detected_json, ensure_ascii=False)
-            
-            weight_coeff = 0.35
+
+            weight_coeff = float(os.getenv("DANGER_KEYWORD_GUIDE_WEIGHT", "0.35"))
             results = extractor.extract_keywords(
                 text=text,
                 keyphrase_ngram_range=(1, 3),
@@ -341,9 +374,12 @@ async def reanalyze_all_cases():
             keywords = []
             for word, score in results:
                 risk_cat, risk_score = classifier.classify_phrase(
-                    word, 
-                    doc_risk_level=risk_level, 
-                    doc_external_level=external_issue
+                    word,
+                    req.thresholds,
+                    doc_risk_level=risk_level,
+                    doc_external_level=external_issue,
+                    custom_linked_threshold=req.linked_threshold,
+                    custom_min_safeguard=req.min_safeguard_score
                 )
                 keywords.append({
                     "word": word,
@@ -371,7 +407,177 @@ async def reanalyze_all_cases():
             "reanalyzed_count": reanalyzed_count,
             "message": f"총 {reanalyzed_count}건의 상담 내역이 성공적으로 재분석되었습니다."
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"전체 재분석 처리 실패: {str(e)}")
+
+
+# 7. 오분류 피드백 API
+class FeedbackRequest(BaseModel):
+    is_correct: bool
+    actual_danger: str = None       # 실제 위험 카테고리 (오분류 시)
+    actual_external: str = None     # 실제 외부 카테고리 (오분류 시)
+    actual_urgency: str = None      # 실제 시급성 (오분류 시)
+    note: str = None                # 상담원 메모
+
+@app.post("/api/feedback/{counseling_id}")
+async def submit_feedback(counseling_id: int, req: FeedbackRequest):
+    """상담원이 오분류를 신고하거나 올바른 분류를 확인하는 피드백 수집"""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # feedback 테이블이 없으면 생성 (마이그레이션 없이 자동 처리)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS counseling_feedback (
+                id          SERIAL PRIMARY KEY,
+                counseling_id INT NOT NULL,
+                is_correct  BOOLEAN NOT NULL,
+                actual_danger VARCHAR(100),
+                actual_external VARCHAR(100),
+                actual_urgency VARCHAR(50),
+                note        TEXT,
+                created_at  TIMESTAMP NOT NULL DEFAULT NOW()
+            )
+        """)
+
+        cur.execute("""
+            INSERT INTO counseling_feedback
+                (counseling_id, is_correct, actual_danger, actual_external, actual_urgency, note)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (counseling_id, req.is_correct, req.actual_danger, req.actual_external, req.actual_urgency, req.note))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+        return {"status": "success", "message": "피드백이 기록되었습니다."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"피드백 저장 실패: {str(e)}")
+
+
+@app.get("/api/feedback/summary")
+async def get_feedback_summary():
+    """피드백 집계 — 오분류율, 카테고리별 정확도"""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("SELECT COUNT(*) FROM counseling_feedback")
+        if cur.fetchone()[0] == 0:
+            cur.close(); conn.close()
+            return {"total": 0, "message": "아직 피드백이 없습니다."}
+
+        cur.execute("SELECT is_correct, COUNT(*) FROM counseling_feedback GROUP BY is_correct")
+        rows = {row[0]: row[1] for row in cur.fetchall()}
+        total = sum(rows.values())
+        correct = rows.get(True, 0)
+
+        cur.execute("""
+            SELECT actual_danger, COUNT(*) FROM counseling_feedback
+            WHERE is_correct = false AND actual_danger IS NOT NULL
+            GROUP BY actual_danger ORDER BY COUNT(*) DESC LIMIT 10
+        """)
+        top_corrections = [{"category": r[0], "count": r[1]} for r in cur.fetchall()]
+
+        cur.close()
+        conn.close()
+        return {
+            "total": total,
+            "correct": correct,
+            "incorrect": total - correct,
+            "accuracy_pct": round(correct / total * 100, 1),
+            "top_corrections": top_corrections
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"피드백 조회 실패: {str(e)}")
+
+
+# 8. 시스템 헬스 체크 API
+@app.get("/api/health")
+async def health_check():
+    """임베딩 서버 및 DB 연결 상태 확인"""
+    results = {"status": "ok", "embedding_server": "unknown", "database": "unknown"}
+
+    # 임베딩 서버 확인
+    try:
+        test_emb = extractor._get_embedding("헬스체크")
+        results["embedding_server"] = "ok" if test_emb else "error"
+    except Exception as e:
+        results["embedding_server"] = f"error: {str(e)}"
+        results["status"] = "degraded"
+
+    # DB 연결 확인
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT 1")
+        cur.close()
+        conn.close()
+        results["database"] = "ok"
+    except Exception as e:
+        results["database"] = f"error: {str(e)}"
+        results["status"] = "degraded"
+
+    return results
+
+
+# 8. PENDING 타임아웃 정리 API (1시간 이상 PENDING 기록을 TIMEOUT으로 처리)
+@app.post("/api/cleanup-pending")
+async def cleanup_pending():
+    """1시간 이상 PENDING 상태인 고아 기록을 TIMEOUT으로 정리"""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE counseling_data
+            SET status = 'TIMEOUT', updated_at = NOW()
+            WHERE status = 'PENDING'
+              AND created_at < NOW() - INTERVAL '1 hour'
+        """)
+        affected = cur.rowcount
+        conn.commit()
+        cur.close()
+        conn.close()
+        return {"status": "success", "cleaned_up": affected, "message": f"{affected}건의 타임아웃 기록을 정리했습니다."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"PENDING 정리 실패: {str(e)}")
+
+
+# 9. DB 통계 API
+@app.get("/api/stats")
+async def get_stats():
+    """상태별 기록 수, 위험 카테고리 분포, 시급성 분포 등 집계"""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("SELECT status, COUNT(*) FROM counseling_data GROUP BY status")
+        status_counts = {row[0]: row[1] for row in cur.fetchall()}
+
+        cur.execute("""
+            SELECT risk_level, COUNT(*) FROM counseling_data
+            WHERE status = 'COMPLETED' GROUP BY risk_level ORDER BY COUNT(*) DESC
+        """)
+        risk_counts = {row[0]: row[1] for row in cur.fetchall()}
+
+        cur.execute("""
+            SELECT urgency_level, COUNT(*) FROM counseling_data
+            WHERE status = 'COMPLETED' GROUP BY urgency_level
+        """)
+        urgency_counts = {row[0]: row[1] for row in cur.fetchall()}
+
+        cur.execute("SELECT COUNT(*) FROM counseling_data")
+        total = cur.fetchone()[0]
+
+        cur.close()
+        conn.close()
+
+        return {
+            "total": total,
+            "by_status": status_counts,
+            "by_risk_level": risk_counts,
+            "by_urgency": urgency_counts
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"통계 조회 실패: {str(e)}")
 
