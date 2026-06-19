@@ -1236,9 +1236,12 @@
                     <span>${category}</span>
                 </div>
                 <div class="slider-row">
-                    <input type="range" min="0.30" max="0.95" step="0.01" value="${val}" 
+                    <input type="range" min="0.05" max="0.50" step="0.01" value="${val}"
                         oninput="updateThresholdValue('${category}', this.value)">
                     <span class="slider-value" id="val-${category}">${val.toFixed(2)}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:#475569;margin-top:-0.1rem;">
+                    <span>← 민감 (더 많이 탐지)</span><span>(더 적게 탐지) 엄격 →</span>
                 </div>
             `;
             container.appendChild(group);
@@ -1255,9 +1258,12 @@
                 <span>🔗 연관 키워드 매핑 완화 임계값</span>
             </div>
             <div class="slider-row">
-                <input type="range" min="0.30" max="0.80" step="0.01" value="${activeLinkedThreshold}" 
+                <input type="range" min="0.01" max="0.20" step="0.01" value="${activeLinkedThreshold}"
                     oninput="updateLinkedThresholdValue(this.value)">
                 <span class="slider-value" id="val-linked-threshold" style="color: #60a5fa; width: 2.2rem; text-align: right;">${activeLinkedThreshold.toFixed(2)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:#475569;margin-top:-0.1rem;">
+                <span>← 민감</span><span>엄격 →</span>
             </div>
             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
                 * 본문 판정 카테고리와 키워드의 최고 매칭 카테고리가 일치할 경우 적용되는 완화 임계값입니다.
@@ -1276,9 +1282,12 @@
                 <span>🛡️ 안전 제한 임계값 (Safeguard Threshold)</span>
             </div>
             <div class="slider-row">
-                <input type="range" min="0.30" max="0.80" step="0.01" value="${activeMinSafeguardScore}" 
+                <input type="range" min="0.05" max="0.30" step="0.01" value="${activeMinSafeguardScore}"
                     oninput="updateMinSafeguardValue(this.value)">
                 <span class="slider-value" id="val-min-safeguard" style="color: #ec4899; width: 2.2rem; text-align: right;">${activeMinSafeguardScore.toFixed(2)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:#475569;margin-top:-0.1rem;">
+                <span>← 민감</span><span>엄격 →</span>
             </div>
             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
                 * 단일 키워드의 유사도가 이 점수 미만일 경우 연관 매핑 조건(완화 임계값)을 충족하더라도 안전하게 '정상'으로 분류합니다.
