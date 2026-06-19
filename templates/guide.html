@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>프로젝트 가이드 및 기술 백서 - 3D 다차원 위협 대응 및 실시간 Triage 엔진</title>
+    <title>IRDA 시스템 기술 백서 v3 — 3D 위협 탐지 & Triage 엔진</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -18,1143 +18,973 @@
             --danger-glow: linear-gradient(135deg, #fb7185 0%, #e11d48 100%);
             --accent: #10b981;
             --accent-glow: linear-gradient(135deg, #34d399 0%, #059669 100%);
+            --warn: #f59e0b;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --border: rgba(255, 255, 255, 0.08);
-            --border-hover: rgba(139, 92, 246, 0.3);
             --font-display: 'Outfit', 'Inter', 'Noto Sans KR', sans-serif;
             --font-sans: 'Inter', 'Noto Sans KR', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background-color: var(--bg-base);
             color: var(--text-main);
             font-family: var(--font-sans);
-            line-height: 1.6;
+            line-height: 1.7;
             overflow-x: hidden;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.08) 0%, transparent 40%),
                 radial-gradient(circle at 90% 80%, rgba(244, 63, 94, 0.05) 0%, transparent 40%),
-                linear-gradient(rgba(255, 255, 255, 0.005) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.005) 1px, transparent 1px);
+                linear-gradient(rgba(255,255,255,0.005) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.005) 1px, transparent 1px);
             background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
         }
-
-        /* Header Style */
         header {
             border-bottom: 1px solid var(--border);
-            padding: 2rem 4rem;
+            padding: 1.5rem 4rem;
             backdrop-filter: blur(20px);
-            background: rgba(2, 6, 23, 0.8);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: rgba(2, 6, 23, 0.85);
+            position: sticky; top: 0; z-index: 100;
+            display: flex; justify-content: space-between; align-items: center;
         }
-
-        .header-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
+        .header-title { display: flex; align-items: center; gap: 0.75rem; }
         .header-logo {
-            width: 2.5rem;
-            height: 2.5rem;
+            width: 2.25rem; height: 2.25rem;
             background: var(--primary-glow);
             border-radius: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: var(--font-display);
-            font-weight: 800;
-            font-size: 1.25rem;
-            color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; color: white;
             box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
         }
-
-        .header-title h1 {
-            font-family: var(--font-display);
-            font-size: 1.25rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-
-        .header-nav {
-            display: flex;
-            gap: 1.5rem;
-        }
-
+        .header-title h1 { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
+        .header-title span { color: var(--text-muted); font-size: 0.8rem; }
         .nav-btn {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            padding: 0.5rem 1.25rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.85rem;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
+            background: transparent; border: 1px solid var(--border);
+            color: var(--text-main); padding: 0.45rem 1.1rem;
+            border-radius: 0.5rem; cursor: pointer; font-weight: 500; font-size: 0.83rem;
+            transition: all 0.3s; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;
         }
-
-        .nav-btn:hover {
-            border-color: var(--primary);
-            background: rgba(139, 92, 246, 0.1);
-            transform: translateY(-1px);
-        }
-
-        .nav-btn-primary {
-            background: var(--primary-glow);
-            border: none;
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
-        }
-
-        .nav-btn-primary:hover {
-            opacity: 0.95;
-            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
-        }
-
-        /* Container */
+        .nav-btn:hover { border-color: var(--primary); background: rgba(139, 92, 246, 0.1); }
+        .nav-btn-primary { background: var(--primary-glow); border: none; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3); }
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 3rem 2rem;
-            display: grid;
-            grid-template-columns: 280px 1fr;
-            gap: 3rem;
+            max-width: 1380px; margin: 0 auto; padding: 3rem 2rem;
+            display: grid; grid-template-columns: 270px 1fr; gap: 3rem;
         }
-
-        /* Sidebar navigation */
         .sidebar {
-            position: sticky;
-            top: 7rem;
-            height: calc(100vh - 10rem);
-            overflow-y: auto;
-            padding-right: 1rem;
+            position: sticky; top: 5rem; height: fit-content;
+            background: var(--bg-surface); border: 1px solid var(--border);
+            border-radius: 1rem; padding: 1.5rem; backdrop-filter: blur(10px);
         }
-
-        .sidebar h3 {
-            font-family: var(--font-display);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--text-muted);
-            margin-bottom: 1.25rem;
-        }
-
-        .sidebar ul {
-            list-style: none;
-        }
-
-        .sidebar li {
-            margin-bottom: 0.5rem;
-        }
-
+        .sidebar h3 { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1rem; }
+        .sidebar ul { list-style: none; }
+        .sidebar li { margin-bottom: 0.15rem; }
         .sidebar a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            padding: 0.6rem 0.8rem;
-            border-radius: 0.5rem;
-            display: block;
-            transition: all 0.25s ease;
-            border-left: 2px solid transparent;
+            display: block; color: var(--text-muted); text-decoration: none;
+            padding: 0.35rem 0.75rem; border-radius: 0.4rem; font-size: 0.8rem;
+            transition: all 0.2s; border-left: 2px solid transparent;
         }
-
-        .sidebar a:hover {
-            color: var(--text-main);
-            background: rgba(255, 255, 255, 0.02);
-            border-left-color: rgba(139, 92, 246, 0.5);
-            padding-left: 1.2rem;
-        }
-
-        .sidebar a.active {
-            color: var(--primary);
-            background: rgba(139, 92, 246, 0.08);
-            border-left-color: var(--primary);
-            font-weight: 600;
-            padding-left: 1.2rem;
-        }
-
-        /* Main Content */
-        main {
-            min-width: 0;
-        }
-
-        .section {
-            background: var(--bg-surface);
-            border: 1px solid var(--border);
-            border-radius: 1.25rem;
-            padding: 3rem;
-            margin-bottom: 3rem;
-            backdrop-filter: blur(12px);
-            transition: border-color 0.3s ease;
-        }
-
-        .section:hover {
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .section-tag {
-            display: inline-block;
-            font-family: var(--font-display);
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--primary);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            background: rgba(139, 92, 246, 0.12);
-            padding: 0.25rem 0.75rem;
-            border-radius: 100px;
-            margin-bottom: 1rem;
-        }
-
+        .sidebar a:hover { color: var(--text-main); background: rgba(139,92,246,0.08); }
+        .sidebar a.active { color: #a78bfa; border-left-color: #a78bfa; background: rgba(139,92,246,0.08); }
+        main { min-width: 0; }
+        .section { margin-bottom: 4rem; }
         .section h2 {
-            font-family: var(--font-display);
-            font-size: 2rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(to right, #f8fafc, #cbd5e1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-family: var(--font-display); font-size: 1.7rem; font-weight: 700;
+            letter-spacing: -0.03em; margin-bottom: 1.2rem;
+            background: linear-gradient(135deg, #f8fafc 30%, #a78bfa 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-
-        .section p {
-            color: var(--text-muted);
-            font-size: 1rem;
-            margin-bottom: 1.5rem;
-            text-align: justify;
+        .section h3 { font-size: 1.05rem; font-weight: 600; color: #c4b5fd; margin: 2rem 0 0.75rem; }
+        .section p { color: var(--text-muted); margin-bottom: 0.9rem; font-size: 0.9rem; }
+        .section-tag {
+            display: inline-block; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em;
+            text-transform: uppercase; color: #a78bfa; border: 1px solid rgba(167,139,250,0.3);
+            padding: 0.2rem 0.6rem; border-radius: 0.3rem; margin-bottom: 0.6rem;
         }
-
-        /* Key Metrics Grid */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-
-        .metric-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .metric-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--border-hover);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-        }
-
-        .metric-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: var(--primary-glow);
-            opacity: 0.8;
-        }
-
-        .metric-card.danger::before { background: var(--danger-glow); }
-        .metric-card.accent::before { background: var(--accent-glow); }
-
-        .metric-val {
-            font-family: var(--font-display);
-            font-size: 2.25rem;
-            font-weight: 800;
-            color: white;
-            margin-bottom: 0.25rem;
-        }
-
-        .metric-label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        /* 3D Matrix & Triage Layout */
-        .matrix-container {
-            background: rgba(15, 23, 42, 0.4);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 2rem;
-            margin: 2rem 0;
-        }
-
-        .matrix-title {
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1.1rem;
-            color: #a5b4fc;
-        }
-
-        .matrix-grid-3d {
-            display: grid;
-            grid-template-columns: 140px 1fr 1fr 1fr;
-            gap: 0.75rem;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .matrix-cell {
-            padding: 1rem;
-            border-radius: 0.5rem;
-            border: 1px solid var(--border);
-            font-size: 0.85rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            background: rgba(30, 41, 59, 0.2);
-            min-height: 5.5rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .matrix-header {
-            font-family: var(--font-display);
-            font-weight: 700;
-            background: rgba(139, 92, 246, 0.15) !important;
-            border-color: rgba(139, 92, 246, 0.3) !important;
-            color: #a5b4fc;
-            min-height: auto;
-            padding: 0.75rem;
-        }
-
-        .matrix-row-label {
-            font-family: var(--font-display);
-            font-weight: 700;
-            background: rgba(244, 63, 94, 0.15) !important;
-            border-color: rgba(244, 63, 94, 0.3) !important;
-            color: #fca5a5;
-            min-height: auto;
-            padding: 0.75rem;
-            text-align: left;
-            align-items: flex-start;
-        }
-
-        .matrix-active-cell {
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .matrix-active-cell:hover {
-            transform: scale(1.02);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .cell-tag {
-            font-size: 0.7rem;
-            padding: 0.1rem 0.35rem;
-            border-radius: 4px;
-            font-weight: 600;
-            margin-top: 0.35rem;
-            display: inline-block;
-        }
-
-        .tag-danger { background: rgba(244, 63, 94, 0.2); color: #f87171; border: 1px solid rgba(244, 63, 94, 0.4); }
-        .tag-external { background: rgba(139, 92, 246, 0.2); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.4); }
-        .tag-normal { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
-        .tag-urgency { background: rgba(245, 158, 11, 0.2); color: #fde047; border: 1px solid rgba(245, 158, 11, 0.4); }
-
-        /* Triage Rules Table */
-        .triage-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1.5rem 0;
-            font-size: 0.9rem;
-        }
-
-        .triage-table th, .triage-table td {
-            border: 1px solid var(--border);
-            padding: 0.75rem 1rem;
-            text-align: left;
-        }
-
-        .triage-table th {
-            background: rgba(30, 41, 59, 0.6);
-            color: #cbd5e1;
-            font-weight: 600;
-        }
-
-        .triage-table tr:nth-child(even) {
-            background: rgba(30, 41, 59, 0.2);
-        }
-
-        /* Tech Stack Badges */
-        .tech-badges {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            margin: 1.5rem 0;
-        }
-
-        .tech-badge {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-size: 0.85rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.25s ease;
-        }
-
-        .tech-badge:hover {
-            border-color: var(--primary);
-            background: rgba(139, 92, 246, 0.05);
-            transform: translateY(-2px);
-        }
-
-        .tech-badge span {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-
-        .tech-server span { background: #3b82f6; }
-        .tech-db span { background: #33a6b8; }
-        .tech-nlp span { background: #eab308; }
-        .tech-queue span { background: #a855f7; }
-
-        /* Flow Diagram SVG Container */
-        .diagram-container {
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid var(--border);
-            border-radius: 1.25rem;
-            padding: 2.5rem;
-            margin: 2.5rem 0;
-            overflow-x: auto;
-            position: relative;
-        }
-
-        .diagram-svg {
-            display: block;
-            margin: 0 auto;
-            max-width: 100%;
-            height: auto;
-        }
-
-        .flow-line {
-            stroke-dasharray: 8, 8;
-            animation: flow-motion 30s linear infinite;
-        }
-
-        @keyframes flow-motion {
-            to {
-                stroke-dashoffset: -1000;
-            }
-        }
-
-        .node {
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .node:hover {
-            filter: brightness(1.2) drop-shadow(0 0 12px rgba(139, 92, 246, 0.6));
-        }
-
-        /* Codeblock styling */
         pre {
-            background: rgba(15, 23, 42, 0.7);
-            border: 1px solid var(--border);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            overflow-x: auto;
-            font-family: 'Fira Code', 'Courier New', Courier, monospace;
-            font-size: 0.85rem;
-            color: #e2e8f0;
-            margin: 1.5rem 0;
+            background: rgba(15,23,42,0.8); border: 1px solid var(--border);
+            border-radius: 0.75rem; padding: 1.2rem 1.5rem; overflow-x: auto;
+            font-family: var(--font-mono), monospace; font-size: 0.78rem; line-height: 1.7;
+            color: #e2e8f0; margin: 0.8rem 0 1.2rem;
         }
-
-        code .keyword { color: #f43f5e; font-weight: 600; }
-        code .comment { color: #64748b; font-style: italic; }
-        code .string { color: #10b981; }
-        code .number { color: #fb923c; }
-        code .function { color: #a78bfa; }
-
-        /* Comparison Lists */
-        .compare-box {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin: 2rem 0;
+        pre .comment { color: #64748b; }
+        pre .key { color: #a78bfa; }
+        pre .val { color: #34d399; }
+        pre .str { color: #fbbf24; }
+        code {
+            font-family: var(--font-mono), monospace; font-size: 0.8em;
+            background: rgba(139,92,246,0.12); padding: 0.1em 0.4em;
+            border-radius: 0.3rem; color: #c4b5fd;
         }
-
-        .compare-side {
-            background: rgba(30, 41, 59, 0.2);
-            border: 1px solid var(--border);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 0.75rem; padding: 1.25rem 1.5rem; margin-bottom: 1rem;
         }
-
-        .compare-side.pro {
-            border-color: rgba(16, 185, 129, 0.2);
-            background: rgba(16, 185, 129, 0.02);
+        .card-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-main); }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+        table {
+            width: 100%; border-collapse: collapse; font-size: 0.82rem;
+            background: rgba(15,23,42,0.5); border-radius: 0.75rem; overflow: hidden;
+            border: 1px solid var(--border); margin: 0.8rem 0 1.5rem;
         }
-
-        .compare-side.con {
-            border-color: rgba(244, 63, 94, 0.2);
-            background: rgba(244, 63, 94, 0.02);
+        th {
+            background: rgba(139,92,246,0.15); color: #c4b5fd;
+            padding: 0.65rem 1rem; text-align: left; font-size: 0.75rem;
+            font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
         }
-
-        .compare-title {
-            font-weight: 700;
-            font-size: 1rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        td { padding: 0.6rem 1rem; border-top: 1px solid var(--border); color: var(--text-muted); vertical-align: top; }
+        tr:hover td { background: rgba(139,92,246,0.05); }
+        .badge {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 0.2rem 0.6rem; border-radius: 0.35rem; font-size: 0.72rem; font-weight: 600;
         }
-
-        .compare-side.pro .compare-title { color: var(--accent); }
-        .compare-side.con .compare-title { color: var(--danger); }
-
-        .compare-list {
-            list-style: none;
+        .badge-red { background: rgba(244,63,94,0.15); color: #fb7185; border: 1px solid rgba(244,63,94,0.25); }
+        .badge-orange { background: rgba(249,115,22,0.15); color: #fb923c; border: 1px solid rgba(249,115,22,0.25); }
+        .badge-yellow { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+        .badge-green { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+        .badge-purple { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
+        .axis-box { display: flex; gap: 1rem; margin: 1rem 0; }
+        .axis-card { flex: 1; padding: 1.25rem; border-radius: 0.75rem; border: 1px solid; }
+        .axis-x { border-color: rgba(244,63,94,0.3); background: rgba(244,63,94,0.05); }
+        .axis-y { border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.05); }
+        .axis-z { border-color: rgba(139,92,246,0.3); background: rgba(139,92,246,0.05); }
+        .axis-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem; }
+        .axis-x .axis-label { color: #fb7185; }
+        .axis-y .axis-label { color: #fbbf24; }
+        .axis-z .axis-label { color: #a78bfa; }
+        .axis-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem; }
+        .axis-desc { font-size: 0.78rem; color: var(--text-muted); }
+        .formula-box {
+            background: rgba(15,23,42,0.9); border: 1px solid rgba(167,139,250,0.2);
+            border-radius: 0.75rem; padding: 1rem 1.5rem;
+            font-family: var(--font-mono), monospace; font-size: 0.82rem;
+            color: #e2e8f0; margin: 0.8rem 0; white-space: pre;
         }
-
-        .compare-list li {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 0.75rem;
-            padding-left: 1.25rem;
-            position: relative;
+        .formula-box .var { color: #a78bfa; }
+        .formula-box .op { color: #fb7185; }
+        .formula-box .fn { color: #34d399; }
+        .highlight-box {
+            border: 1px solid rgba(167,139,250,0.25); border-radius: 0.75rem;
+            padding: 1rem 1.25rem; background: rgba(139,92,246,0.06); margin: 1rem 0;
         }
-
-        .compare-list li::before {
-            content: '•';
-            position: absolute;
-            left: 0;
-            font-size: 1.2rem;
+        .highlight-box .label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #a78bfa; margin-bottom: 0.4rem; }
+        .warn-box {
+            border: 1px solid rgba(245,158,11,0.3); border-radius: 0.75rem;
+            padding: 1rem 1.25rem; background: rgba(245,158,11,0.06); margin: 1rem 0;
         }
-
-        .compare-side.pro li::before { color: var(--accent); }
-        .compare-side.con li::before { color: var(--danger); }
-
-        /* Footer styling */
+        .warn-box .label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #fbbf24; margin-bottom: 0.4rem; }
+        .danger-box {
+            border: 1px solid rgba(244,63,94,0.3); border-radius: 0.75rem;
+            padding: 1rem 1.25rem; background: rgba(244,63,94,0.05); margin: 1rem 0;
+        }
+        .danger-box .label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #fb7185; margin-bottom: 0.4rem; }
+        .flow-step {
+            display: flex; gap: 1rem; align-items: flex-start;
+            padding: 0.85rem 0; border-bottom: 1px solid var(--border);
+        }
+        .flow-step:last-child { border-bottom: none; }
+        .step-num {
+            width: 1.8rem; height: 1.8rem; flex-shrink: 0;
+            background: var(--primary-glow); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 700; color: white;
+        }
+        .step-content { flex: 1; }
+        .step-title { font-weight: 600; font-size: 0.88rem; margin-bottom: 0.2rem; }
+        .step-desc { font-size: 0.8rem; color: var(--text-muted); }
         .footer-logo {
-            text-align: center;
-            padding-top: 3rem;
-            border-top: 1px solid var(--border);
-            color: var(--text-muted);
-            font-size: 0.85rem;
+            text-align: center; padding: 3rem 0 1rem;
+            color: var(--text-muted); font-size: 0.8rem;
+            border-top: 1px solid var(--border); margin-top: 2rem;
         }
-
-        .pulse-light {
-            width: 8px;
-            height: 8px;
-            background: #10b981;
-            border-radius: 50%;
-            display: inline-block;
-            box-shadow: 0 0 8px #10b981;
-            animation: pulse-glow 1.5s infinite alternate;
-            vertical-align: middle;
-            margin-right: 0.35rem;
-        }
-
-        @keyframes pulse-glow {
-            from { opacity: 0.4; box-shadow: 0 0 2px #10b981; }
-            to { opacity: 1; box-shadow: 0 0 10px #10b981; }
-        }
+        ul.bullet { padding-left: 1.4rem; }
+        ul.bullet li { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 0.3rem; }
+        ul.bullet li strong { color: var(--text-main); }
+        .lexicon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 0.8rem 0; }
+        .lexicon-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 0.65rem; padding: 0.85rem 1rem; }
+        .lexicon-cat { font-size: 0.72rem; font-weight: 700; color: #a78bfa; margin-bottom: 0.4rem; }
+        .lexicon-words { font-size: 0.75rem; color: var(--text-muted); line-height: 1.8; font-family: var(--font-mono), monospace; }
+        .sev-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+        .sev-row:last-child { border-bottom: none; }
+        .sev-score { font-size: 1rem; font-weight: 800; min-width: 2.5rem; }
+        .sev-info { flex: 1; font-size: 0.82rem; }
+        .sev-action { font-size: 0.75rem; color: var(--text-muted); min-width: 200px; text-align: right; }
     </style>
 </head>
 <body>
 
-    <!-- Header Section -->
-    <header>
-        <div class="header-title">
-            <div class="header-logo">3D</div>
-            <div>
-                <h1>3D 다차원 위협대응 및 Triage 엔진 백서</h1>
-                <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0;">3D Multi-Label Co-occurrence & Action Triage Engine (IRDA v2)</p>
+<header>
+    <div class="header-title">
+        <div class="header-logo">IR</div>
+        <div>
+            <h1>IRDA — Intelligence Risk Detection & Triage</h1>
+            <span>기술 백서 v3 · 현재 시스템 기준</span>
+        </div>
+    </div>
+    <a href="/" class="nav-btn nav-btn-primary">← 대시보드로 돌아가기</a>
+</header>
+
+<div class="container">
+    <aside class="sidebar">
+        <h3>목차</h3>
+        <ul>
+            <li><a href="#overview" class="active">1. 시스템 개요</a></li>
+            <li><a href="#architecture">2. 3D 분류 아키텍처</a></li>
+            <li><a href="#classifier">3. SemanticClassifier</a></li>
+            <li><a href="#baseline">4. BGE-M3 베이스라인 보정</a></li>
+            <li><a href="#keywords">5. 키워드 추출 엔진</a></li>
+            <li><a href="#severity">6. 심각도 점수 엔진</a></li>
+            <li><a href="#feedback">7. 피드백 루프 & 자동보정</a></li>
+            <li><a href="#pipeline">8. 데이터 파이프라인</a></li>
+            <li><a href="#schema">9. DB 스키마 & 인프라</a></li>
+            <li><a href="#api">10. API 레퍼런스</a></li>
+            <li><a href="#runbook">11. 운영 런북</a></li>
+            <li><a href="#thresholds">12. 임계값 튜닝 가이드</a></li>
+        </ul>
+    </aside>
+
+    <main>
+
+        <!-- 1. 시스템 개요 -->
+        <section id="overview" class="section">
+            <span class="section-tag">Overview</span>
+            <h2>시스템 개요</h2>
+            <p>IRDA(Intelligence Risk Detection & Analysis)는 편의점/유통 기업 고객센터에 접수되는 한국어 상담 텍스트에서 위험 신호를 자동으로 탐지하고 우선순위를 결정하는 AI 분류 엔진입니다. BGE-M3 다국어 임베딩 모델(llama.cpp HTTP 서버 via <code>http://localhost:8081</code>)을 기반으로 하며, 단순 키워드 매칭이 아닌 의미 유사도 기반으로 동작합니다.</p>
+
+            <div class="grid-3">
+                <div class="card">
+                    <div class="card-title">핵심 입력</div>
+                    <p style="font-size:0.82rem;">고객 상담 텍스트 (한국어 자유 형식)<br>단일 문장 ~ 수 문단 처리 가능</p>
+                </div>
+                <div class="card">
+                    <div class="card-title">핵심 출력</div>
+                    <p style="font-size:0.82rem;">위험 카테고리 + 외부압박 카테고리 + 시급성 3축 판정<br>위험 키워드 목록 + 심각도 1~10점 + tone/flags</p>
+                </div>
+                <div class="card">
+                    <div class="card-title">주요 기술 스택</div>
+                    <p style="font-size:0.82rem;">BGE-M3 (BAAI/bge-m3, llama.cpp) · Kiwi 형태소 · FastAPI · Celery + Redis · PostgreSQL 15</p>
+                </div>
             </div>
-        </div>
-        <div class="header-nav">
-            <span class="nav-btn" style="border: none; cursor: default;">
-                <span class="pulse-light"></span> 3D Triage Engine Active
-            </span>
-            <a href="/" class="nav-btn nav-btn-primary">🖥️ 프로토타입 대시보드 바로가기</a>
-        </div>
-    </header>
 
-    <!-- Main Container -->
-    <div class="container">
-        <!-- Sidebar Navigation -->
-        <aside class="sidebar">
-            <h3>문서 목차</h3>
-            <ul>
-                <li><a href="#overview" class="active">1. 프로젝트 개요 및 추진 배경</a></li>
-                <li><a href="#matrix">2. 3D 다차원 매트릭스 아키텍처</a></li>
-                <li><a href="#pipeline">3. 형태소 기반 구문 스캔 & orthogonal 분류</a></li>
-                <li><a href="#triage">4. 3D 지능형 Triage 자동 배정 로직</a></li>
-                <li><a href="#flow">5. 데이터 파이프라인 흐름도</a></li>
-                <li><a href="#spec">6. 시스템 기술 스펙</a></li>
-                <li><a href="#quality">7. 시스템 핵심 품질 개선 사항 (QE)</a></li>
-                <li><a href="#value">8. 비즈니스 효과 및 미래 로드맵</a></li>
-                <li><a href="#runbook">9. 운영 런북</a></li>
-                <li><a href="#roadmap">10. 확장 로드맵</a></li>
+            <h3>시스템 구성 요소</h3>
+            <table>
+                <thead><tr><th>구성요소</th><th>파일/서비스</th><th>역할</th></tr></thead>
+                <tbody>
+                    <tr><td>분류 엔진</td><td><code>worker.py</code> → <code>SemanticClassifier</code></td><td>3D 위험 분류, 심각도 판정, 키워드 추출, 베이스라인 보정</td></tr>
+                    <tr><td>웹 API</td><td><code>web_app.py</code> (FastAPI, port 8000)</td><td>동기/비동기 분석 엔드포인트 14개, 피드백 수집, 통계</td></tr>
+                    <tr><td>비동기 워커</td><td>Celery + Redis (port 6379)</td><td>대용량 텍스트 큐 처리, 최대 3회 자동 재시도</td></tr>
+                    <tr><td>임베딩 서버</td><td>llama.cpp HTTP (port 8081)</td><td>BGE-M3 임베딩 생성 (외부 프로세스, 별도 구동 필요)</td></tr>
+                    <tr><td>데이터베이스</td><td>PostgreSQL 15 (host port 5433)</td><td>상담 기록, 분석 결과, 피드백 저장, Asia/Seoul 시간대</td></tr>
+                    <tr><td>웹 UI</td><td><code>templates/index.html</code></td><td>실시간 대시보드, 슬라이더 튜닝, 피드백 입력, 헬스 모니터</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 2. 3D 분류 아키텍처 -->
+        <section id="architecture" class="section">
+            <span class="section-tag">Architecture</span>
+            <h2>3D 분류 아키텍처</h2>
+            <p>모든 상담 텍스트는 독립적인 3개 축으로 동시에 분류됩니다. 세 축의 조합이 최종 SLA 응대 전략을 결정합니다.</p>
+
+            <div class="axis-box">
+                <div class="axis-card axis-x">
+                    <div class="axis-label">X축 — 위험 이슈</div>
+                    <div class="axis-title">Danger Axis</div>
+                    <div class="axis-desc">신체적 피해 / 제품 위해 / 대인 폭력 판정<br><strong>5개 카테고리</strong></div>
+                </div>
+                <div class="axis-card axis-y">
+                    <div class="axis-label">Y축 — 외부압박</div>
+                    <div class="axis-title">External Axis</div>
+                    <div class="axis-desc">법적 소송 / 언론 제보 위협 판정<br><strong>2개 카테고리</strong></div>
+                </div>
+                <div class="axis-card axis-z">
+                    <div class="axis-label">Z축 — 시급성</div>
+                    <div class="axis-title">Urgency Axis</div>
+                    <div class="axis-desc">즉각 대응 필요 여부 판정<br><strong>IMMEDIATE / SHORT-TERM / MONITOR</strong></div>
+                </div>
+            </div>
+
+            <h3>X축 — 위험 카테고리 (5개)</h3>
+            <table>
+                <thead><tr><th>카테고리</th><th>임계값 (.env)</th><th>심각도 기여</th><th>설명 요약</th></tr></thead>
+                <tbody>
+                    <tr><td><span class="badge badge-red">폭력 및 폭행</span></td><td>0.27</td><td>기본점수 6</td><td>신체적 위해·협박·난동·욕설·흉기 사용 상황</td></tr>
+                    <tr><td><span class="badge badge-red">성폭력</span></td><td>0.27</td><td>기본점수 7 (최고)</td><td>성추행·성희롱·신체 접촉·그루밍 행위</td></tr>
+                    <tr><td><span class="badge badge-orange">이물질 상품</span></td><td>0.28</td><td>기본점수 5</td><td>식품 내 벌레·이물·쇳조각·유리 등 물리적 혼입</td></tr>
+                    <tr><td><span class="badge badge-orange">식품위생</span></td><td>0.28</td><td>기본점수 5</td><td>부패·변질·곰팡이·식중독·장염 등 건강 피해</td></tr>
+                    <tr><td><span class="badge badge-yellow">안전사고</span></td><td>0.27</td><td>기본점수 6</td><td>낙상·화상·화재·끼임·교통사고 등 신체 안전 사고</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Y축 — 외부압박 카테고리 (2개)</h3>
+            <table>
+                <thead><tr><th>카테고리</th><th>임계값 (.env)</th><th>심각도 기여</th><th>설명 요약</th></tr></thead>
+                <tbody>
+                    <tr><td><span class="badge badge-purple">법적/민원제기</span></td><td>0.22</td><td>기본점수 4 + 법적위협 +2</td><td>소송·고소·고발·소비자원·관공서 민원 제기 경고</td></tr>
+                    <tr><td><span class="badge badge-purple">언론제보</span></td><td>0.22</td><td>기본점수 5 + 언론위협 +2</td><td>방송·SNS·유튜브·커뮤니티 공론화 경고</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Z축 — 시급성 (3단계)</h3>
+            <table>
+                <thead><tr><th>레벨</th><th>심각도 가중치</th><th>트리거 어휘</th><th>비고</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge badge-red">IMMEDIATE</span></td>
+                        <td>+3점</td>
+                        <td>
+                            <strong>시제 무관:</strong> 당장, 즉시, 실시간, 지금, 구급차, 급함, 응급<br>
+                            <strong>현재/미래형만:</strong> 오늘, 당일, 응급실
+                        </td>
+                        <td>과거형 감지 시 "오늘·당일·응급실"은 SHORT-TERM으로 강등</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-yellow">SHORT-TERM</span></td>
+                        <td>+1점</td>
+                        <td>이번주, 조만간, 며칠, 기한, 데드라인, 주말, "이번" 포함, "일주일" 포함<br>또는 과거형 "오늘·당일·응급실"</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-green">MONITOR</span></td>
+                        <td>없음</td>
+                        <td>위 어휘 모두 없음</td>
+                        <td>기본값</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="warn-box">
+                <div class="label">과거형 감지 로직 (핵심)</div>
+                <p style="font-size:0.83rem;margin:0;">Kiwi 형태소 분석 결과에서 EP/EF/EC 태그 형태소 중 "었", "았", "했", "됐" 어미가 포함된 경우 과거형으로 판정합니다.<br>
+                예시: "어제 응급실 다녀왔어요" → <span class="badge badge-yellow">SHORT-TERM</span> (과거형 감지됨)<br>
+                예시: "지금 응급실이에요!!" → <span class="badge badge-red">IMMEDIATE</span> (현재형)</p>
+            </div>
+        </section>
+
+        <!-- 3. SemanticClassifier 상세 -->
+        <section id="classifier" class="section">
+            <span class="section-tag">Core Engine</span>
+            <h2>SemanticClassifier 상세</h2>
+
+            <h3>classify_danger(text, custom_thresholds)</h3>
+            <p>X축 위험 카테고리를 판정합니다. BGE-M3로 텍스트를 임베딩하여 5개 카테고리 지침 임베딩과 코사인 유사도를 계산하고, 베이스라인 보정 후 임계값을 적용합니다.</p>
+            <div class="highlight-box">
+                <div class="label">임계값 결정 규칙</div>
+                <ul class="bullet">
+                    <li><strong>위해 렉시콘 직접 매칭 시</strong>: <code>DANGER_KEYWORD_LINKED_THRESHOLD</code> (기본 0.10) 적용 → 민감도 최대화</li>
+                    <li><strong>렉시콘 매칭 없음 시</strong>: <code>DANGER_THRESHOLDS[카테고리]</code> 또는 <code>DANGER_THRESHOLD</code> (기본 0.20) 적용</li>
+                    <li><strong>반환</strong>: 통과 카테고리를 점수 내림차순 정렬한 리스트. 통과 없으면 <code>[("정상 문의", best_score)]</code></li>
+                </ul>
+            </div>
+
+            <h3>classify_external(text, custom_thresholds)</h3>
+            <p>Y축 외부압박 카테고리를 판정합니다. "법적/민원제기"와 "언론제보" 2개 카테고리에 대해 classify_danger와 동일한 임계값 로직으로 동작합니다.</p>
+
+            <h3>classify_urgency(text)</h3>
+            <p>Z축 시급성을 판정합니다. Kiwi 형태소 분석 후 어휘 집합 매칭과 과거형 감지를 순서대로 수행합니다. 반환값: <code>"IMMEDIATE"</code> | <code>"SHORT-TERM"</code> | <code>"MONITOR"</code></p>
+
+            <h3>classify_phrase(phrase, custom_thresholds, doc_risk_level, doc_external_level, custom_linked_threshold, custom_min_safeguard)</h3>
+            <p>개별 키워드/구문의 카테고리를 판정합니다. 위험 + 외부 전체 7개 카테고리에 대해 임베딩 유사도를 계산하고, 문서 수준 판정 결과와 렉시콘 매칭 여부를 결합하여 임계값을 동적으로 결정합니다.</p>
+            <div class="highlight-box">
+                <div class="label">Safeguard 임계값 로직</div>
+                <ul class="bullet">
+                    <li>렉시콘 직접 매칭: <code>linked_threshold</code> 적용</li>
+                    <li>문서 위험 판정과 카테고리 일치: <code>min(linked_threshold, min_safeguard_score)</code> 적용</li>
+                    <li>기타: 카테고리별 개별 임계값 적용</li>
+                    <li><strong>보호단어</strong>에 해당하면 즉시 "정상", 0.0 반환 (모든 임베딩 계산 스킵)</li>
+                </ul>
+            </div>
+
+            <h3>보호단어 (Protected Words)</h3>
+            <p>아래 단어는 위험 키워드 결과에서 완전히 제외됩니다 — 정상 상담에서 자주 등장하는 일반 명사이므로 위험 신호로 오해될 수 있기 때문입니다.</p>
+            <pre>도시락, 음식, 매장, 점포, 강남점, 상계점, 어제, 해당, 식사, 순간, 보행, 불편,
+자전거, 학생, 골목길, 상자, 박스, 쌓임, 구매, 발견, 오늘, 내일, 영업, 시간,
+위치, 문의, 질문, 안내, 부탁, 요청, 확인, 치우려다가, 치우다, 앞에, 가운데,
+때문에, 이것, 저것</pre>
+
+            <h3>위해 렉시콘 (Lexicon) — 카테고리별 트리거 단어</h3>
+            <p>아래 단어가 입력 텍스트에 포함되면 해당 카테고리의 임계값이 <code>linked_threshold</code>(기본 0.10)으로 완화됩니다.</p>
+            <div class="lexicon-grid">
+                <div class="lexicon-card">
+                    <div class="lexicon-cat">안전사고</div>
+                    <div class="lexicon-words">낙상, 미끄러짐, 빙판, 눈길, 붕괴, 깔림, 끼임, 화상, 화재, 누수, 다침, 넘어짐, 부딪힘, 사고, 위험, 병원, 응급실, 구급차, 이송</div>
+                </div>
+                <div class="lexicon-card">
+                    <div class="lexicon-cat">성폭력</div>
+                    <div class="lexicon-words">성추행, 성희롱, 유인, 그루밍, 추행, 접촉, 희롱</div>
+                </div>
+                <div class="lexicon-card">
+                    <div class="lexicon-cat">폭력 및 폭행</div>
+                    <div class="lexicon-words">폭행, 구타, 협박, 살해, 때리다, 죽이다, 멱살, 흉기, 난동, 욕설, 던지다, 행패, 기계를, 욕을</div>
+                </div>
+                <div class="lexicon-card">
+                    <div class="lexicon-cat">이물질 상품</div>
+                    <div class="lexicon-words">벌레, 초파리, 바퀴벌레, 유해물, 혼입, 쥐, 쥐머리, 이물질, 머리카락, 손톱, 쇳조각, 유리</div>
+                </div>
+                <div class="lexicon-card">
+                    <div class="lexicon-cat">식품위생</div>
+                    <div class="lexicon-words">식중독, 장염, 배탈, 복통, 설사, 구토, 알레르기, 알러지, 곰팡이, 쉰내, 부패, 상함, 변질, 쉰, 두드러기, 가려움, 호흡곤란</div>
+                </div>
+                <div class="lexicon-card">
+                    <div class="lexicon-cat">법적/민원제기</div>
+                    <div class="lexicon-words">고소, 고발, 소송, 신고, 과태료, 벌금, 처벌, 내용증명, 법원, 변호사, 법적, 재판, 경찰, 소비자원, 소보원, 구청, 시청, 식약처, 소방서, 민원, 위생과, 단속, 신고하겠다, 접수하겠다</div>
+                </div>
+                <div class="lexicon-card">
+                    <div class="lexicon-cat">언론제보</div>
+                    <div class="lexicon-words">제보, 언론사, 기자, 뉴스, 방송, 유튜브, 커뮤니티, 인터넷, 인스타, 보도</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. BGE-M3 베이스라인 보정 -->
+        <section id="baseline" class="section">
+            <span class="section-tag">NLP Core</span>
+            <h2>BGE-M3 베이스라인 보정</h2>
+            <p>BGE-M3는 한국어 텍스트 간 코사인 유사도가 서로 무관한 문장 사이에도 0.65~0.73 범위로 높게 나타납니다. 이 "플로어(floor)" 현상을 보정하지 않으면 정상 문의도 위험으로 오분류됩니다.</p>
+
+            <div class="danger-box">
+                <div class="label">핵심 문제</div>
+                <p style="font-size:0.83rem;margin:0;">"영업시간 문의합니다"와 "폭행 카테고리 지침 설명" 사이의 코사인 유사도도 약 0.68 수준. 임계값을 0.7 이상으로 설정하면 실제 위험도 탐지 못하고, 낮게 설정하면 모든 정상 문의가 탐지되는 딜레마.</p>
+            </div>
+
+            <h3>해결: 카테고리별 베이스라인 차감 정규화</h3>
+            <p><strong>12개 중립 텍스트</strong>와 각 카테고리 지침 임베딩의 코사인 유사도 평균을 해당 카테고리의 <code>baseline</code>으로 사용합니다.</p>
+
+            <div class="formula-box"><span class="fn">adjusted</span> = <span class="fn">max</span>(<span class="val">0.0</span>, (<span class="var">raw_score</span> <span class="op">-</span> <span class="var">baseline</span>) <span class="op">/</span> (<span class="val">1.0</span> <span class="op">-</span> <span class="var">baseline</span>))</div>
+
+            <p>이 수식은 유효 신호 구간 [baseline, 1.0]을 [0.0, 1.0]으로 재정규화합니다. 임계값 0.20은 "중립 대비 20% 이상 높은 의미 유사도"를 의미하게 됩니다.</p>
+
+            <h3>중립 텍스트 12개 (베이스라인 측정용)</h3>
+            <pre>"POS 시스템 접속이 되지 않습니다. 빠른 조치 원합니다."
+"입고된 바나나 상태가 좋지 않습니다. 반품 요청드립니다."
+"영업시간 변경 안내 부탁드립니다"
+"포인트 적립이 안 되는데 확인 부탁드립니다"
+"영수증 재발급 요청드립니다"
+"제품 사용 방법에 대해 질문하고 있습니다"
+"강남점 주차장 이용 방법이 궁금합니다. 빠른 안내 부탁드립니다."
+"배송이 지연되고 있습니다. 빠른 처리 요청드립니다."
+"개선되지 않으면 불편함을 느낍니다. 빠른 조치 부탁드립니다."
+"매장 청결 상태 개선을 요청합니다. 신경 써주세요."
+"제품 불량으로 교환을 요청합니다. 빠른 처리 바랍니다."
+"고객 응대가 불친절했습니다. 개선 요청드립니다."</pre>
+
+            <div class="highlight-box">
+                <div class="label">지연 로딩 (_ensure_cached)</div>
+                <p style="font-size:0.83rem;margin:0;">베이스라인 계산은 최초 분류 요청 시 1회만 수행됩니다 (7개 카테고리 × 12개 중립 텍스트 = 84회 코사인 유사도 계산). 결과는 <code>cached_baselines</code> 딕셔너리에 캐시됩니다. llama.cpp 서버가 반드시 준비되어 있어야 하며, 서버 재시작 시 캐시가 초기화됩니다.</p>
+            </div>
+        </section>
+
+        <!-- 5. 키워드 추출 엔진 -->
+        <section id="keywords" class="section">
+            <span class="section-tag">Keyword Extraction</span>
+            <h2>키워드 추출 엔진</h2>
+            <p>위험 판정 후, 어떤 단어가 위험 신호를 유발했는지 CS 상담원에게 시각적으로 보여주기 위해 위험 키워드를 추출합니다. <code>extract_keywords()</code> 함수가 담당합니다.</p>
+
+            <h3>후보 추출 전략 (5가지)</h3>
+            <div class="flow-step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <div class="step-title">단일 명사 (NNG, NNP)</div>
+                    <div class="step-desc">Kiwi 분석에서 2글자 이상 일반명사·고유명사 추출</div>
+                </div>
+            </div>
+            <div class="flow-step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <div class="step-title">인접 명사 N-gram</div>
+                    <div class="step-desc">연속된 명사를 합성하거나 띄어쓰기 변이를 생성하여 복합 명사 후보 추가</div>
+                </div>
+            </div>
+            <div class="flow-step">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <div class="step-title">동사/형용사 명사화</div>
+                    <div class="step-desc">VV/VA 어간에 종성 계산 후 "ㅁ/음" 결합 (예: 다치다 → 다침, 쓰러지다 → 쓰러짐)</div>
+                </div>
+            </div>
+            <div class="flow-step">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <div class="step-title">관형어 + 명사구</div>
+                    <div class="step-desc">VV+ETM(관형형 어미) + 후속 명사 조합 (예: 쓰러진 손님, 미끄러진 바닥)</div>
+                </div>
+            </div>
+            <div class="flow-step">
+                <div class="step-num">5</div>
+                <div class="step-content">
+                    <div class="step-title">명사구 + 동사 결합</div>
+                    <div class="step-desc">인접 명사구와 바로 뒤 동사 어간을 결합 (예: 응급실 이송, 구급차 호출)</div>
+                </div>
+            </div>
+
+            <h3>점수 계산 및 가이드 가중치</h3>
+            <pre><code><span class="comment"># 기본 점수: 후보와 문서 전체의 코사인 유사도</span>
+<span class="key">base_score</span> = cosine_similarity(candidate_emb, doc_emb)
+
+<span class="comment"># 위험 문서일 때만 가이드 버프 활성화</span>
+<span class="comment"># (doc_risk_level != "정상 문의" OR doc_external_level != "정상 문의")</span>
+<span class="key">guide_score</span> = max(cosine_similarity(candidate_emb, guide_emb) for all 7 guides)
+
+<span class="comment"># 렉시콘 직접 매칭 시 1.5배 가속</span>
+<span class="key">if</span> 렉시콘 매칭: final = base + (weight_coeff * guide_score * 1.5)
+<span class="key">else</span>:           final = base + (weight_coeff * guide_score)
+
+<span class="comment"># weight_coeff 기본값: 0.35 (env: DANGER_KEYWORD_GUIDE_WEIGHT)</span>
+<span class="comment"># 보호단어는 가이드 버프 완전 무효화</span></code></pre>
+
+            <h3>배치 처리 및 중복 제거</h3>
+            <ul class="bullet">
+                <li><strong>배치 크기 32</strong>: 후보를 32개씩 청크 분할 → llama.cpp 배치 임베딩 요청 (VRAM 초과 방지)</li>
+                <li><strong>폴백</strong>: 배치 실패 시 후보를 1개씩 개별 요청 (Plan B)</li>
+                <li><strong>중복 제거</strong>: 띄어쓰기 정규화(spaceless key) → 부분 문자열 포함 체크 → 더 구체적인 복합어가 단순 명사를 대체</li>
+                <li><strong>최종 반환</strong>: 점수 내림차순 top_n개 (기본값 <code>top_n</code>은 요청 파라미터)</li>
             </ul>
-        </aside>
+        </section>
 
-        <!-- Main Content Panel -->
-        <main>
-            <!-- 1. Overview -->
-            <section id="overview" class="section">
-                <span class="section-tag">Overview</span>
-                <h2>1. 프로젝트 개요 및 추진 배경</h2>
-                <p>
-                    본 프로젝트는 고객 불만 제기 및 위기 상황 접수 채널에서 수집되는 텍스트를 실시간으로 분석하여 중대한 <strong>내재적 위해(위험이슈)</strong>, <strong>외재적 압박(대외이슈)</strong>, 그리고 <strong>에스컬레이션 속도(시급성/긴급도)</strong>를 동시에 도출하는 <strong>3D 다차원 위협대응 및 실시간 Triage 배정 엔진</strong>입니다.
-                </p>
-                <p>
-                    기존의 1차원적 또는 2D 단순 분류 모델은 여러 종류의 위협 요소가 텍스트에 혼재해 있을 때 점수가 가장 높은 단 하나의 카테고리만 검출되는 <strong>하드맥스 한계(Hard-Max Limitation)</strong>가 있었으며, 위생 사고(식중독)와 물리 혼입(이물질)을 하나의 그릇에 억지로 모아 담음으로써 분류 정밀도가 희석되는 구조적 모순이 존재했습니다.
-                </p>
-                <p>
-                    본 엔진은 이러한 한계를 종식하기 위해 <strong>다중 위협 동시 검출(Multi-Label Co-occurrence)</strong> 모델로 도약하였으며, 식품 위해 요소를 생물학적/화학적 위해(식품위생)와 물리적 혼입(이물질 상품)으로 완벽하게 **상호 독립(Orthogonal)화**하였습니다. 이를 Z축의 시간적 시급성(Urgency)과 조합하여 <strong>전사적 위기 통제 배정 체계(Triage Matrix)</strong>를 완성하였습니다.
-                </p>
-                
-                <div class="metrics-grid">
-                    <div class="metric-card danger">
-                        <div class="metric-val">3D</div>
-                        <div class="metric-label">X(위험) × Y(대외) × Z(시급성) 차원</div>
-                    </div>
-                    <div class="metric-card accent">
-                        <div class="metric-val">Multi</div>
-                        <div class="metric-label">다중 위협 동시 검출 (Co-occurrence)</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-val">Triage</div>
-                        <div class="metric-label">유관 부서 실시간 위기 배정 통제</div>
-                    </div>
+        <!-- 6. 심각도 점수 엔진 -->
+        <section id="severity" class="section">
+            <span class="section-tag">Severity Engine</span>
+            <h2>심각도 점수 엔진 (classify_severity)</h2>
+            <p>같은 "안전사고" 카테고리라도 "어제 계단에서 미끄러질 뻔했어요"와 "지금 고객이 쓰러졌고 구급차 불렀습니다!!!"는 완전히 다른 대응 수준이 필요합니다. 심각도 엔진은 1~10점 척도로 이를 정량화합니다.</p>
+            <p>반환값: <code>{"score": int, "tone": str, "escalation": float, "flags": list[str]}</code></p>
+
+            <h3>점수 계산 방식 (순서대로 적용)</h3>
+            <pre><code><span class="comment"># Step 1: 극단 Critical 키워드 → 즉시 10점 + flag="critical_keyword"</span>
+critical_words = {사망, 자살, 자해, 죽다, 살해, 119, 구급차, 의식불명, 혼절, 실신, 중태, 위독}
+
+<span class="comment"># Step 2: 카테고리별 기본점수 (가장 높은 1개 채택)</span>
+{폭력/폭행: 6, 성폭력: 7, 이물질 상품: 5, 식품위생: 5, 안전사고: 6, 법적/민원제기: 4, 언론제보: 5}
+
+<span class="comment"># Step 3: 시급성 가중치</span>
+IMMEDIATE → +3점,  SHORT-TERM → +1점,  MONITOR → 0
+
+<span class="comment"># Step 4: 어조·위협 보너스</span>
+공격적 어조(aggressive_words 집합 매칭)    → +1  | tone="aggressive"
+법적 위협(법원, 변호사, 경찰, 신고 등)     → +2  | flag="legal_threat"
+언론 위협(유튜브, 방송, SNS, 커뮤니티 등)  → +2  | flag="media_threat"
+느낌표 3개 이상(!!!)                       → +1  | flag="high_emotion"
+
+<span class="comment"># Step 5: 다중 카테고리 보너스</span>
+카테고리 3개 이상 → +2 | flag="multi_category"
+카테고리 2개      → +1 | flag="multi_category"
+
+<span class="comment"># 최종: min(10, 합산)</span></code></pre>
+
+            <h3>심각도별 대응 기준</h3>
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1rem 1.25rem; margin: 0.8rem 0;">
+                <div class="sev-row">
+                    <div class="sev-score" style="color:#ef4444;">10</div>
+                    <div class="sev-info"><strong>Critical</strong> — 사망·자살·자해 등 critical 키워드 감지 (즉시 10점)</div>
+                    <div class="sev-action">즉각 CSO + 법무팀 에스컬레이션</div>
                 </div>
-            </section>
-
-            <!-- 2. 3D Matrix -->
-            <section id="matrix" class="section">
-                <span class="section-tag">3D Architecture</span>
-                <h2>2. 3D 다차원 위험 매트릭스 아키텍처</h2>
-                <p>
-                    물리/생물학적 위험 수준, 대외적 압박 강도, 그리고 대응 시간 지평(SLA)은 완전히 독립된 3개의 차원을 이룹니다. 이들을 조합하여 실시간 대시보드 및 사내 배정 워크플로우에 완벽한 무결성을 제공하도록 <strong>3D Risk Space</strong>를 정립하였습니다.
-                </p>
-                
-                <div class="matrix-container">
-                    <div class="matrix-title">
-                        📊 3D 입체 매트릭스 분류 개념 (X축: 위험이슈 × Y축: 대외이슈)
-                    </div>
-                    <div class="matrix-grid-3d">
-                        <!-- headers -->
-                        <div class="matrix-cell matrix-header" style="background: transparent !important; border: none;"></div>
-                        <div class="matrix-cell matrix-header">법적/민원제기 (대외)</div>
-                        <div class="matrix-cell matrix-header">언론제보 (대외)</div>
-                        <div class="matrix-cell matrix-header" style="background: rgba(16, 185, 129, 0.15) !important; border-color: rgba(16, 185, 129, 0.3) !important; color: #34d399;">정상 문의 (대외)</div>
-                        
-                        <!-- row 1: 식품변질 -->
-                        <div class="matrix-cell matrix-row-label">식품변질/건강위해<br>(위험 - 생물학)</div>
-                        <div class="matrix-cell matrix-active-cell" style="background: rgba(244, 63, 94, 0.08); border-color: var(--danger);">
-                            <strong>🚨 생물위해 법적대응</strong>
-                            <span class="cell-tag tag-danger">위험: 식품변질/위해</span>
-                            <span class="cell-tag tag-external">대외: 법적/민원제기</span>
-                        </div>
-                        <div class="matrix-cell">
-                            식중독 공론화 위협
-                            <span class="cell-tag tag-danger">위험: 식품변질/위해</span>
-                            <span class="cell-tag tag-external">대외: 언론제보</span>
-                        </div>
-                        <div class="matrix-cell" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.25);">
-                            위생 변질 변상 문의
-                            <span class="cell-tag tag-danger">위험: 식품변질/위해</span>
-                            <span class="cell-tag tag-normal">대외: 정상 문의</span>
-                        </div>
-                        
-                        <!-- row 2: 이물질 -->
-                        <div class="matrix-cell matrix-row-label">이물질 상품<br>(위험 - 물리)</div>
-                        <div class="matrix-cell">
-                            이물 혼입 민형사 고소
-                            <span class="cell-tag tag-danger">위험: 이물질 상품</span>
-                            <span class="cell-tag tag-external">대외: 법적/민원제기</span>
-                        </div>
-                        <div class="matrix-cell">
-                            이물 발견 커뮤니티 전파
-                            <span class="cell-tag tag-danger">위험: 이물질 상품</span>
-                            <span class="cell-tag tag-external">대외: 언론제보</span>
-                        </div>
-                        <div class="matrix-cell" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.25);">
-                            단순 이물 교환 요청
-                            <span class="cell-tag tag-danger">위험: 이물질 상품</span>
-                            <span class="cell-tag tag-normal">대외: 정상 문의</span>
-                        </div>
-                        
-                        <!-- row 3: 안전사고 -->
-                        <div class="matrix-cell matrix-row-label">안전사고<br>(위험)</div>
-                        <div class="matrix-cell">
-                            점포 부상 피해 소송
-                            <span class="cell-tag tag-danger">위험: 안전사고</span>
-                            <span class="cell-tag tag-external">대외: 법적/민원제기</span>
-                        </div>
-                        <div class="matrix-cell">
-                            매장 시설 결함 폭로
-                            <span class="cell-tag tag-danger">위험: 안전사고</span>
-                            <span class="cell-tag tag-external">대외: 언론제보</span>
-                        </div>
-                        <div class="matrix-cell" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.25);">
-                            매장 단순 상해 조치
-                            <span class="cell-tag tag-danger">위험: 안전사고</span>
-                            <span class="cell-tag tag-normal">대외: 정상 문의</span>
-                        </div>
-
-                        <!-- row 4: 정상 -->
-                        <div class="matrix-cell matrix-row-label" style="background: rgba(16, 185, 129, 0.15) !important; border-color: rgba(16, 185, 129, 0.3) !important; color: #34d399;">정상 문의<br>(위험)</div>
-                        <div class="matrix-cell" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.25);">
-                            단순 서비스 불만 고소
-                            <span class="cell-tag tag-normal">위험: 정상 문의</span>
-                            <span class="cell-tag tag-external">대외: 법적/민원제기</span>
-                        </div>
-                        <div class="matrix-cell" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.25);">
-                            단순 불친절 SNS 게시
-                            <span class="cell-tag tag-normal">위험: 정상 문의</span>
-                            <span class="cell-tag tag-external">대외: 언론제보</span>
-                        </div>
-                        <div class="matrix-cell" style="background: rgba(16, 185, 129, 0.15); border-color: var(--accent);">
-                            <strong>🟢 일반 민원 안건</strong>
-                            <span class="cell-tag tag-normal">일반 단순 문의</span>
-                        </div>
-                    </div>
+                <div class="sev-row">
+                    <div class="sev-score" style="color:#f87171;">8~9</div>
+                    <div class="sev-info"><strong>Extreme</strong> — 다중 위협 + IMMEDIATE + 공격적 어조 조합</div>
+                    <div class="sev-action">PR + Legal + QA 긴급 배정 (SLA 1h)</div>
                 </div>
-                <p>
-                    여기에 Z축인 <strong>시급성 (Urgency)</strong>이 3단계(`IMMEDIATE`, `SHORT-TERM`, `MONITOR`)로 결합하여 5차원 교차 분석 스페이스를 형성하고, 실시간 의사결정의 신뢰도를 보장합니다.
-                </p>
-            </section>
-
-            <!-- 3. Pipeline -->
-            <section id="pipeline" class="section">
-                <span class="section-tag">Orthogonal NLP</span>
-                <h2>3. 형태소 기반 구문 스캔 & Orthogonal 카테고리화</h2>
-                <p>
-                    텍스트의 잠재 위험 분류 지표의 명확성을 위해 기존의 '법적 이슈'를 위험 축에서 전격 제외하여 대외 압박(법적/민원제기)과의 중복 판정을 배제하고, Danger 축은 오로지 물리적/생물학적 위해 상황만을 독립적으로 측정하도록 정비하였습니다.
-                </p>
-
-                <div class="compare-box">
-                    <div class="compare-side con">
-                        <div class="compare-title">❌ 기존 위험 카테고리 중복 구조</div>
-                        <ul class="compare-list">
-                            <li>위험 축에 '법적 이슈' 존재 ➔ 대외 축의 '법적/민원제기'와 의미론적 오버랩 발생</li>
-                            <li>식중독(생물 위해)과 유리조각(물리 혼입)을 전부 '이물질 상품'으로 묶음</li>
-                            <li>단일 최댓값(Hard-Max) 출력으로 인해 co-occurrence 요소 소멸 및 누락</li>
-                        </ul>
-                    </div>
-                    <div class="compare-side pro">
-                        <div class="compare-title">✅ 개편된 Orthogonal & Multi-Label 분류</div>
-                        <ul class="compare-list">
-                            <li>'법적 이슈'는 <strong>대외 축(법적/민원제기)</strong>으로만 단일 타겟화하여 독립성 100% 확보</li>
-                            <li><strong>식품위생</strong> 카테고리를 독자 신설하여 식중독/알레르기 정밀 탐지</li>
-                            <li><strong>이물질 상품</strong> 카테고리는 철저하게 물리적 혼입(쇳조각, 벌레)만 엄격 조준</li>
-                            <li>임계치를 통과한 모든 위협 항목을 <strong>배열 형태(detected_categories JSON)</strong>로 다중 검출</li>
-                        </ul>
-                    </div>
+                <div class="sev-row">
+                    <div class="sev-score" style="color:#fbbf24;">5~7</div>
+                    <div class="sev-info"><strong>High</strong> — 위험 카테고리 + 법적/언론 위협 조합</div>
+                    <div class="sev-action">CS 총괄 매니저 배정 (SLA 24h)</div>
                 </div>
+                <div class="sev-row">
+                    <div class="sev-score" style="color:#34d399;">1~4</div>
+                    <div class="sev-info"><strong>Moderate</strong> — 단순 위험 언급 또는 일반 불만</div>
+                    <div class="sev-action">CS 선임 상담원 배정 (SLA 48h)</div>
+                </div>
+            </div>
 
-                <p><strong>생물학적(식중독) 및 물리적(이물질) 위해 렉시콘 예시 (worker.py)</strong></p>
-                <pre><code>self.lexicons = {
-    <span class="comment"># 위험 이슈 (Orthogonalization 완료)</span>
-    <span class="string">"이물질 상품"</span>: [<span class="string">"벌레"</span>, <span class="string">"초파리"</span>, <span class="string">"바퀴벌레"</span>, <span class="string">"유해물"</span>, <span class="string">"쥐"</span>, <span class="string">"쥐머리"</span>, <span class="string">"이물질"</span>, <span class="string">"쇳조각"</span>, <span class="string">"유리"</span>],
-    <span class="string">"식품위생"</span>: [<span class="string">"식중독"</span>, <span class="string">"장염"</span>, <span class="string">"배탈"</span>, <span class="string">"복통"</span>, <span class="string">"설사"</span>, <span class="string">"구토"</span>, <span class="string">"알레르기"</span>, <span class="string">"알러지"</span>, <span class="string">"곰팡이"</span>, <span class="string">"상함"</span>, <span class="string">"변질"</span>]
+            <h3>알람 배너 판정 로직 (UI)</h3>
+            <table>
+                <thead><tr><th>배너 유형</th><th>판정 조건</th></tr></thead>
+                <tbody>
+                    <tr><td><span class="badge badge-red">🚨 CRITICAL</span></td><td>severity.score == 10 또는 "critical_keyword"가 flags에 포함</td></tr>
+                    <tr><td><span class="badge badge-red">🚨 IMMEDIATE CRITICAL</span></td><td>severity.score >= 8 또는 urgency_level == "IMMEDIATE"</td></tr>
+                    <tr><td><span class="badge badge-orange">⚠️ ESCALATION ALERT</span></td><td>위험/외부 카테고리 탐지 + 중간 심각도 또는 SHORT-TERM</td></tr>
+                    <tr><td><span class="badge badge-yellow">⚠️ SLA RESPONSIVENESS</span></td><td>SHORT-TERM 시급성만 있는 경우</td></tr>
+                    <tr><td><span class="badge badge-green">🟢 GREEN MONITOR</span></td><td>위 조건 모두 해당 없음</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 7. 피드백 루프 -->
+        <section id="feedback" class="section">
+            <span class="section-tag">Feedback Loop</span>
+            <h2>피드백 루프 & 임계값 자동보정</h2>
+            <p>CS 상담원이 AI 판정이 틀렸다고 직접 신고할 수 있습니다. 누적된 피드백 데이터를 분석하여 카테고리별 임계값 조정 방향을 자동으로 제안합니다.</p>
+
+            <h3>피드백 수집</h3>
+            <p>대시보드 각 행의 <span class="badge badge-green">✓</span> / <span class="badge badge-red">✗</span> 버튼으로 피드백을 제출합니다. 오분류 신고 시 실제 카테고리와 메모를 입력할 수 있습니다.</p>
+            <pre><code><span class="comment"># POST /api/feedback/{counseling_id}</span>
+{
+  "is_correct": false,
+  "actual_danger": "식품위생",      <span class="comment"># 상담원이 판단한 실제 위험 카테고리</span>
+  "actual_external": "정상 문의",
+  "actual_urgency": "MONITOR",
+  "note": "단순 부패 불만, 법적 위협 없음"
 }</code></pre>
-            </section>
 
-            <!-- 4. Triage -->
-            <section id="triage" class="section">
-                <span class="section-tag">Triage Logic</span>
-                <h2>4. 3D 지능형 Triage 자동 배정 매트릭스</h2>
-                <p>
-                    텍스트의 내용적 위해성(Severity)과 Z축 시급성(Urgency)을 연계하여, 내용이 심각함에도 시급성 단어가 없어 하위 부서로 오분류되는 모순을 해소하는 <strong>Triage 자동 배정 알고리즘</strong>을 수립하였습니다.
-                </p>
+            <h3>임계값 보정 제안 로직</h3>
+            <p><code>GET /api/threshold-calibrate</code>는 <code>counseling_feedback</code>를 <code>counseling_data</code>에 JOIN하여 카테고리별 정확도를 계산합니다 (최소 5건 이상 피드백 필요).</p>
+            <table>
+                <thead><tr><th>조건</th><th>제안 방향</th><th>조정 폭</th><th>의미</th></tr></thead>
+                <tbody>
+                    <tr><td>정확도 &lt; 60%</td><td>임계값 상향</td><td>+0.03</td><td>오탐 과다 → 더 엄격하게</td></tr>
+                    <tr><td>정확도 &gt; 90%</td><td>임계값 하향</td><td>-0.02</td><td>여유 있음 → 더 민감하게</td></tr>
+                    <tr><td>60% ~ 90%</td><td>유지</td><td>0</td><td>현 임계값 적절</td></tr>
+                </tbody>
+            </table>
+            <div class="warn-box">
+                <div class="label">주의: 자동 적용되지 않음</div>
+                <p style="font-size:0.83rem;margin:0;">보정 제안은 조언입니다. 제안을 검토 후 <code>.env</code>의 <code>DANGER_THRESHOLDS</code>를 수동 수정하고 재배포해야 적용됩니다. UI 하단 "🔬 임계값 보정 제안" 버튼으로 현재 제안 내용을 확인합니다.</p>
+            </div>
+        </section>
 
-                <table class="triage-table">
-                    <thead>
-                        <tr>
-                            <th>위해성 판단 (위험/대외)</th>
-                            <th>Z축 시급성 수준</th>
-                            <th>최종 경보 수준 (Alarm Banner)</th>
-                            <th>사내 실시간 배정 타겟 (Dispatch Target)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td style="color: #f87171; font-weight: 600;">⚠️ 위해 및 대외 위협 검출</td>
-                            <td style="color: #f87171; font-weight: 600;">🚨 IMMEDIATE (초긴급)</td>
-                            <td style="background: rgba(239, 68, 68, 0.15); color: #fca5a5; font-weight: 700;">🟥 RED ALERT</td>
-                            <td style="font-weight: 600;">법무 / 홍보 / 품질 / CSO 긴급 배정 (골든타임 &lt; 6h)</td>
-                        </tr>
-                        <tr>
-                            <td style="color: #f87171; font-weight: 600;">⚠️ 위해 및 대외 위협 검출</td>
-                            <td>SHORT-TERM 또는 MONITOR</td>
-                            <td style="background: rgba(245, 158, 11, 0.1); color: #fde047; font-weight: 700;">🟨 AMBER ESCALATION</td>
-                            <td>CS 총괄 매니저 배정 (SLA &lt; 24h)</td>
-                        </tr>
-                        <tr>
-                            <td>🟢 위해 및 대외 위협 없음</td>
-                            <td>🚨 IMMEDIATE 또는 SHORT-TERM</td>
-                            <td style="background: rgba(245, 158, 11, 0.1); color: #fde047; font-weight: 700;">🟨 SLA WARNING</td>
-                            <td>CS 파트 리더 배정 (SLA &lt; 48h)</td>
-                        </tr>
-                        <tr>
-                            <td>🟢 위해 및 대외 위협 없음</td>
-                            <td>MONITOR (일반)</td>
-                            <td style="background: rgba(16, 185, 129, 0.1); color: #34d399; font-weight: 700;">🟩 GREEN MONITOR</td>
-                            <td>고객지원 부서 일반 CS 배정 (기본 SLA)</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <p>
-                    이 배정 매트릭스는 대시보드 우측 최상단 <strong>"SLA Crisis Alarm" 배너</strong>에 완벽하게 실시간 녹아들어, 현업 부서의 개입 판단을 100% 자동화시킵니다.
-                </p>
-            </section>
+        <!-- 8. 데이터 파이프라인 -->
+        <section id="pipeline" class="section">
+            <span class="section-tag">Pipeline</span>
+            <h2>데이터 파이프라인</h2>
 
-            <!-- 5. Flow Diagram -->
-            <section id="flow" class="section">
-                <span class="section-tag">Data Flow</span>
-                <h2>5. 데이터 파이프라인 및 아키텍처 흐름도</h2>
-                <p>
-                    클라이언트로부터 요청이 유입되었을 때, 실시간 분석(동기식)과 Celery 비동기 분산 분석(비동기식)이 데이터베이스 및 LLM 임베딩 모델 인프라에서 어떻게 흘러가며 정제되는지 보여주는 완전한 데이터 아키텍처 흐름도입니다.
-                </p>
+            <h3>동기 분석 경로 (⚡ 실시간)</h3>
+            <p><code>POST /api/extract/sync</code>로 요청 → FastAPI 메인 스레드에서 즉시 처리 → 결과 반환. DB 저장 없음. UI 슬라이더 테스트에 사용됩니다.</p>
 
-                <div class="diagram-container">
-                    <svg class="diagram-svg" viewBox="0 0 1000 450" width="100%" height="450" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Definitions for arrow heads -->
-                        <defs>
-                            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6" />
-                            </marker>
-                            <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
-                            </marker>
-                        </defs>
-
-                        <!-- GRID LINES for visual premium touch -->
-                        <g stroke="rgba(255,255,255,0.02)" stroke-width="1">
-                            <line x1="0" y1="50" x2="1000" y2="50" />
-                            <line x1="0" y1="150" x2="1000" y2="150" />
-                            <line x1="0" y1="250" x2="1000" y2="250" />
-                            <line x1="0" y1="350" x2="1000" y2="350" />
-                        </g>
-
-                        <!-- Connection lines -->
-                        <!-- User to FastAPI -->
-                        <path class="flow-line" d="M 90 225 L 200 225" stroke="#8b5cf6" stroke-width="2" fill="none" marker-end="url(#arrow)" />
-                        <!-- FastAPI to Celery -->
-                        <path class="flow-line" d="M 310 250 L 310 320 A 20 20 0 0 0 330 340 L 460 340" stroke="#8b5cf6" stroke-width="2" fill="none" marker-end="url(#arrow)" />
-                        <!-- FastAPI to EmbedServer -->
-                        <path class="flow-line" d="M 330 200 L 400 120 L 530 120" stroke="#8b5cf6" stroke-width="2" fill="none" marker-end="url(#arrow)" />
-                        <!-- Celery to EmbedServer -->
-                        <path class="flow-line" d="M 540 310 L 540 230 A 20 20 0 0 1 560 210 L 580 160" stroke="#8b5cf6" stroke-width="2" fill="none" marker-end="url(#arrow)" />
-                        <!-- EmbedServer to FastAPI (Results) -->
-                        <path class="flow-line" d="M 580 80 L 320 80 A 20 20 0 0 0 300 100 L 300 175" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrow-green)" stroke-dasharray="8,8" />
-                        <!-- Celery to DB -->
-                        <path class="flow-line" d="M 600 350 L 780 350" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrow-green)" />
-                        <!-- FastAPI to DB -->
-                        <path class="flow-line" d="M 320 225 L 780 225" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrow-green)" />
-
-                        <!-- Nodes -->
-                        <!-- User Node -->
-                        <g class="node" transform="translate(10, 185)">
-                            <rect width="80" height="80" rx="10" fill="rgba(30, 41, 59, 0.8)" stroke="rgba(255,255,255,0.1)" stroke-width="1.5" />
-                            <text x="40" y="35" fill="white" font-size="12" font-weight="700" text-anchor="middle">Client</text>
-                            <text x="40" y="55" fill="var(--text-muted)" font-size="10" text-anchor="middle">상담 데이터 인입</text>
-                        </g>
-
-                        <!-- Web App Node -->
-                        <g class="node" transform="translate(200, 175)">
-                            <rect width="130" height="100" rx="12" fill="rgba(124, 58, 237, 0.15)" stroke="var(--primary)" stroke-width="2" />
-                            <text x="65" y="35" fill="white" font-size="13" font-weight="700" text-anchor="middle">FastAPI</text>
-                            <text x="65" y="55" fill="white" font-size="13" font-weight="700" text-anchor="middle">Web App</text>
-                            <text x="65" y="75" fill="#c084fc" font-size="10" text-anchor="middle">Port 8000 (3D 엔진)</text>
-                        </g>
-
-                        <!-- Celery Node -->
-                        <g class="node" transform="translate(470, 310)">
-                            <rect width="130" height="80" rx="10" fill="rgba(168, 85, 247, 0.1)" stroke="#a855f7" stroke-width="1.5" />
-                            <text x="65" y="35" fill="white" font-size="13" font-weight="700" text-anchor="middle">Celery Worker</text>
-                            <text x="65" y="55" fill="var(--text-muted)" font-size="10" text-anchor="middle">비동기 백그라운드 큐</text>
-                        </g>
-
-                        <!-- Llama.cpp Node -->
-                        <g class="node" transform="translate(540, 70)">
-                            <rect width="180" height="90" rx="10" fill="rgba(234, 179, 8, 0.1)" stroke="#eab308" stroke-width="2" />
-                            <text x="90" y="35" fill="white" font-size="13" font-weight="700" text-anchor="middle">llama.cpp Embed Server</text>
-                            <text x="90" y="55" fill="#fef08a" font-size="11" font-weight="600" text-anchor="middle">BGE-M3 (HTTP v1 Mode)</text>
-                            <text x="90" y="72" fill="var(--text-muted)" font-size="9" text-anchor="middle">Port 8081 (Torch-Free)</text>
-                        </g>
-
-                        <!-- DB Node -->
-                        <g class="node" transform="translate(790, 185)">
-                            <rect width="150" height="100" rx="10" fill="rgba(16, 185, 129, 0.1)" stroke="var(--accent)" stroke-width="2" />
-                            <text x="75" y="35" fill="white" font-size="13" font-weight="700" text-anchor="middle">PostgreSQL DB</text>
-                            <text x="75" y="55" fill="#a7f3d0" font-size="10" text-anchor="middle">Port 5433 (counseling_data)</text>
-                            <text x="75" y="75" fill="rgba(255,255,255,0.4)" font-size="9" text-anchor="middle">3D 스키마 메타데이터</text>
-                        </g>
-                    </svg>
+            <h3>비동기 분석 경로 (📥 Celery 큐)</h3>
+            <div class="flow-step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <div class="step-title">POST /api/extract/async 접수</div>
+                    <div class="step-desc">counseling_data에 status='PENDING' 행 INSERT → counseling_id 즉시 반환</div>
                 </div>
-            </section>
-
-            <!-- 6. Tech Spec -->
-            <section id="spec" class="section">
-                <span class="section-tag">Tech Specs</span>
-                <h2>6. 시스템 기술 스펙</h2>
-                <p>
-                    운영 및 장애 방어 환경과 동일하게 CPU 오버헤드를 극소화하고 실시간 다차원 마이그레이션이 동작하도록 이중 분산 아키텍처를 연동시켰습니다.
-                </p>
-
-                <div class="tech-badges">
-                    <div class="tech-badge tech-server"><span></span>FastAPI & Uvicorn (Web API)</div>
-                    <div class="tech-badge tech-nlp"><span></span>kiwipiepy 형태소 및 구문 분석기</div>
-                    <div class="tech-badge tech-nlp"><span></span>llama.cpp Embed Server (BGE-M3)</div>
-                    <div class="tech-badge tech-db"><span></span>PostgreSQL 15 (psycopg 3)</div>
-                    <div class="tech-badge tech-queue"><span></span>Celery 5 & Redis 7 Broker</div>
-                    <div class="tech-badge tech-server"><span></span>Docker Compose & publish_default Network</div>
+            </div>
+            <div class="flow-step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <div class="step-title">Celery 워커 처리</div>
+                    <div class="step-desc">Redis 큐에서 태스크 수신 → 3D 분류(X·Y·Z) + classify_severity + extract_keywords 순서 실행</div>
                 </div>
-
-                <p><strong>아키텍처 세부 강점</strong></p>
-                <div style="margin-left: 1.5rem; color: var(--text-muted); font-size: 0.95rem;">
-                    <ul style="list-style-type: square; margin-bottom: 1.5rem;">
-                        <li style="margin-bottom: 0.5rem;">
-                            <strong>가벼우나 강력한 임베딩 서빙</strong>: 거대한 PyTorch 엔진 없이 C++ 단일 구동 방식인 <code>llama.cpp</code> 서빙 모듈을 사용하여 컨테이너 리소스를 극도로 절감하고 레이턴시를 2초 미만으로 지켰습니다.
-                        </li>
-                        <li style="margin-bottom: 0.5rem;">
-                            <strong>스키마 1NF 규격화 보존</strong>: <code>urgency_level</code> 및 <code>detected_categories</code> JSON 컬럼을 PostgreSQL 상에 정식 확장하여, 구 대시보드 쿼리( risk_level 단일 조회)와의 하위 호환성을 완벽히 만족하며 다중 위협 메타데이터를 정밀 구조화했습니다.
-                        </li>
-                        <li style="margin-bottom: 0.5rem;">
-                            <strong>독립적 네트워크 격리 구조</strong>: 타 서비스들과 간섭이 일어날 수 있는 외부 연동을 <code>publish_default</code> 가상 네트워크에만 결합 바인딩하여 안전한 외부 통신(Cloudflare Tunnel) 환경을 제공합니다.
-                        </li>
-                    </ul>
+            </div>
+            <div class="flow-step">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <div class="step-title">DB 업데이트</div>
+                    <div class="step-desc">keywords, risk_level, external_issue, urgency_level, detected_categories(severity 포함), status='COMPLETED' 업데이트</div>
                 </div>
-            </section>
-
-            <!-- 7. Quality Engineering -->
-            <section id="quality" class="section">
-                <span class="section-tag">Quality & Performance</span>
-                <h2>7. 시스템 핵심 품질 개선 사항 (Quality Engineering)</h2>
-                <p>
-                    3D 다차원 Triage 및 실시간 분석 시스템의 비즈니스 안정성과 고성능 처리를 만족시키기 위해 소프트웨어 아키텍처 및 알고리즘 차원에서 설계된 핵심 품질 엔지니어링 항목입니다.
-                </p>
-
-                <div class="quality-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">
-                    <div style="background: rgba(30, 41, 59, 0.3); border: 1px solid var(--border); padding: 1.5rem; border-radius: 8px;">
-                        <h4 style="color: #ec4899; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem;">
-                            🛡️ 1. Orthogonal 격리 분류 (위해 vs 대외)
-                        </h4>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin-top: 0.25rem;">
-                            물리적 혼입이 우려되는 '이물질 상품' 리스크와 식중독/병원 치료를 유발하는 '식품위생' 리스크를 완벽히 직교(Orthogonal) 격리 설계했습니다. 이를 통해 하나의 위해 카테고리가 다른 카테고리에 노이즈를 유발하지 않으며, 특정 위험에 특화된 비상 컴플라이언스 배포망을 병렬로 작동시킵니다.
-                        </p>
-                    </div>
-
-                    <div style="background: rgba(30, 41, 59, 0.3); border: 1px solid var(--border); padding: 1.5rem; border-radius: 8px;">
-                        <h4 style="color: #60a5fa; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem;">
-                            🔗 2. Dual-Guideline 임베딩 시너지 융합
-                        </h4>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin-top: 0.25rem;">
-                            본문의 최고 유사도 위험 가이드라인 임베딩과 대외 이슈 가이드라인 임베딩을 추출 쿼리에 동적으로 가중 결합(가중치: 0.35)하는 아키텍처를 도입했습니다. 단순 문맥 매칭을 탈피하여 위해 단어가 빈번히 중첩되더라도 비정상적인 우선순위 희석 없이 고위험 키워드 구문을 정밀 추출합니다.
-                        </p>
-                    </div>
-
-                    <div style="background: rgba(30, 41, 59, 0.3); border: 1px solid var(--border); padding: 1.5rem; border-radius: 8px;">
-                        <h4 style="color: #10b981; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem;">
-                            📊 3. BGE-M3 기반 키워드 스코어링 & 세부 툴팁
-                        </h4>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin-top: 0.25rem;">
-                            단어 빈도수 중심의 전통적인 KeyBERT 방식을 업그레이드하여, 다국어 임베딩 BGE-M3 모델 기반의 '본문 연관성(Score)' 및 '위험 부합도(Risk Score)'를 정교하게 융합한 스코어링을 실현했습니다. 키워드 태그 위 마우스 오버 시 두 차원의 유사도가 실시간 시각적 게이지로 역동적으로 시각화됩니다.
-                        </p>
-                    </div>
-
-                    <div style="background: rgba(30, 41, 59, 0.3); border: 1px solid var(--border); padding: 1.5rem; border-radius: 8px;">
-                        <h4 style="color: #f59e0b; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem;">
-                            ⚡ 4. Celery & Redis 분산 비동기 파이프라인
-                        </h4>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin-top: 0.25rem;">
-                            대용량 데이터베이스 입력 및 분석 처리 시 발생하는 프론트엔드 병목을 완전히 제거하기 위해 Celery 워커 및 Redis 브로커 기반의 비동기 메시지 대기열 아키텍처를 전격 도입했습니다. 실시간 응답과 무거운 백그라운드 AI 연산을 분리함으로써 병목 현상 Zero 상태를 달성했습니다.
-                        </p>
-                    </div>
+            </div>
+            <div class="flow-step">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <div class="step-title">자동 재시도 (max 3회)</div>
+                    <div class="step-desc">ConnectionError / TimeoutError / OSError 발생 시 5초 대기 후 재시도. 3회 모두 실패 → status='FAILED' 기록</div>
                 </div>
-            </section>
-
-            <!-- 8. Value & Future Roadmap -->
-            <section id="value" class="section" style="margin-bottom: 0;">
-                <span class="section-tag">Value Proposition</span>
-                <h2>8. 비즈니스 효과 및 미래 로드맵</h2>
-                <p>
-                    3D 다차원 Triage 배정 엔진은 단순한 데이터 분석 툴이 아닌, 고객 피해 상황을 즉각 파악하여 전사 컴플라이언스 비상 조직을 자동 가동시키는 <strong>스마트 기업 위기대응 센터</strong>로서 작동합니다.
-                </p>
-
-                <div class="metrics-grid">
-                    <div class="metric-card danger">
-                        <div class="metric-val">0%</div>
-                        <div class="metric-label">위기 대응 누락/오배정율</div>
-                    </div>
-                    <div class="metric-card accent">
-                        <div class="metric-val">Zero</div>
-                        <div class="metric-label">위협 오분류 및 간섭 비율</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-val">&lt; 6h</div>
-                        <div class="metric-label">초긴급 골든타임 보장 배정</div>
-                    </div>
+            </div>
+            <div class="flow-step">
+                <div class="step-num">5</div>
+                <div class="step-content">
+                    <div class="step-title">UI 폴링 (3초 간격)</div>
+                    <div class="step-desc">대시보드가 3초마다 /api/history 폴링 → PENDING → COMPLETED 상태 변화 실시간 반영</div>
                 </div>
+            </div>
 
-                <div style="margin-top: 2rem; color: var(--text-muted); font-size: 0.95rem;">
-                    <ol style="margin-left: 1.5rem; margin-bottom: 2rem;">
-                        <li style="margin-bottom: 1rem;">
-                            <strong>고객 신체 건강 리스크의 즉시 격리</strong>:
-                            <br>유리조각 등 물리 혼입(이물질)과 식중독/알레르기(건강 위해)를 엄격히 orthogonal하게 분리함으로써, 생물학적 위해 상황에 특화된 식품안전 QA 및 현장 단속 조직이 단 6시간 내에 즉시 개입할 수 있는 완벽한 법적 대응망을 구축했습니다.
-                        </li>
-                        <li style="margin-bottom: 1rem;">
-                            <strong>SLA 위기 알람 배너를 통한 부서 배정 완전 자동화</strong>:
-                            <br>수동으로 리스크를 읽고 배정 부서를 고민하던 상담 분류 업무의 병목 현상을 해결하고, AI가 도출한 3D Triage 배정 매트릭스를 기반으로 하여 관련 부서(PR, 품질관리, 법무 등)로의 실시간 자동 전송 및 의사결정을 실현합니다.
-                        </li>
-                        <li style="margin-bottom: 1rem;">
-                            <strong>미래 로드맵 - LLM 자율 대응 가이드 연동</strong>:
-                            <br>향후 3D Triage 판정 결과를 기업 내부의 CRM 및 ERP 시스템과 실시간 API로 연계하고, 탐지된 위협에 알맞은 자율 답변 초안 생성 및 유사 법률 판례 조회를 보조하는 LLM 비서 솔루션과의 확장을 도모할 예정입니다.
-                        </li>
-                    </ol>
-                </div>
+            <h3>상태값 (status)</h3>
+            <table>
+                <thead><tr><th>값</th><th>의미</th><th>UI 표시</th></tr></thead>
+                <tbody>
+                    <tr><td>PENDING</td><td>큐 대기 중 또는 처리 중</td><td>🟡 노란 점</td></tr>
+                    <tr><td>COMPLETED</td><td>분석 완료</td><td>🟢 초록 점</td></tr>
+                    <tr><td>FAILED</td><td>3회 재시도 후 최종 실패</td><td>🔴 빨간 점</td></tr>
+                    <tr><td>TIMEOUT</td><td>1시간 이상 PENDING → cleanup 처리</td><td>⚫ 회색 점</td></tr>
+                </tbody>
+            </table>
+        </section>
 
-            </section>
+        <!-- 9. DB 스키마 & 인프라 -->
+        <section id="schema" class="section">
+            <span class="section-tag">Infrastructure</span>
+            <h2>DB 스키마 & 인프라</h2>
 
-            <!-- 운영 런북 -->
-            <section id="runbook" class="section">
-                <span class="section-tag">Operations</span>
-                <h2>운영 런북 (Operational Runbook)</h2>
+            <h3>counseling_data 테이블</h3>
+            <table>
+                <thead><tr><th>컬럼</th><th>타입</th><th>기본값</th><th>설명</th></tr></thead>
+                <tbody>
+                    <tr><td>id</td><td>SERIAL PK</td><td>auto</td><td>자동 증가 고유 ID</td></tr>
+                    <tr><td>text</td><td>TEXT NOT NULL</td><td>-</td><td>원본 상담 텍스트</td></tr>
+                    <tr><td>keywords</td><td>TEXT</td><td>NULL</td><td>추출된 키워드 JSON 문자열</td></tr>
+                    <tr><td>status</td><td>VARCHAR(20)</td><td>'PENDING'</td><td>PENDING / COMPLETED / FAILED / TIMEOUT</td></tr>
+                    <tr><td>risk_level</td><td>VARCHAR(50)</td><td>'정상 문의'</td><td>X축 대표 위험 카테고리 (최고점 1개)</td></tr>
+                    <tr><td>external_issue</td><td>VARCHAR(50)</td><td>'정상 문의'</td><td>Y축 대표 외부압박 카테고리</td></tr>
+                    <tr><td>urgency_level</td><td>VARCHAR(50)</td><td>'MONITOR'</td><td>Z축 시급성</td></tr>
+                    <tr><td>detected_categories</td><td>TEXT</td><td>NULL</td><td>전체 다중 매핑 JSON (danger[], external[], severity{score, tone, escalation, flags})</td></tr>
+                    <tr><td>created_at</td><td>TIMESTAMP</td><td>NOW()</td><td>생성 시각 (Asia/Seoul)</td></tr>
+                    <tr><td>updated_at</td><td>TIMESTAMP</td><td>NOW()</td><td>갱신 시각</td></tr>
+                </tbody>
+            </table>
 
-                <h3 style="margin:1.5rem 0 0.5rem;color:#a78bfa;">배포 절차</h3>
-                <pre><code><span class="comment"># 1. 환경변수 설정 (.env 파일 확인)</span>
-cat .env | grep -E "DANGER_THRESHOLD|LLAMA_API|DB_"
+            <h3>counseling_feedback 테이블</h3>
+            <table>
+                <thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+                <tbody>
+                    <tr><td>id</td><td>SERIAL PK</td><td>자동 증가 ID</td></tr>
+                    <tr><td>counseling_id</td><td>INT FK NOT NULL</td><td>counseling_data.id 참조 (DELETE CASCADE)</td></tr>
+                    <tr><td>is_correct</td><td>BOOLEAN NOT NULL</td><td>AI 판정 정확도 여부</td></tr>
+                    <tr><td>actual_danger</td><td>VARCHAR(100)</td><td>실제 위험 카테고리 (오분류 시 입력)</td></tr>
+                    <tr><td>actual_external</td><td>VARCHAR(100)</td><td>실제 외부 카테고리 (오분류 시 입력)</td></tr>
+                    <tr><td>actual_urgency</td><td>VARCHAR(50)</td><td>실제 시급성 (오분류 시 입력)</td></tr>
+                    <tr><td>note</td><td>TEXT</td><td>상담원 추가 메모</td></tr>
+                    <tr><td>created_at</td><td>TIMESTAMP</td><td>피드백 제출 시각</td></tr>
+                </tbody>
+            </table>
 
-<span class="comment"># 2. 배포 실행 (헬스체크 + 조건부 재분석 포함)</span>
+            <h3>성능 인덱스 (6개)</h3>
+            <pre>idx_counseling_status_updated  ON counseling_data(status, updated_at DESC)
+idx_counseling_risk_level      ON counseling_data(risk_level)
+idx_counseling_urgency         ON counseling_data(urgency_level)
+idx_counseling_created_at      ON counseling_data(created_at DESC)
+idx_feedback_counseling_id     ON counseling_feedback(counseling_id)
+idx_feedback_is_correct        ON counseling_feedback(is_correct)</pre>
+
+            <h3>Docker Compose 서비스 구성</h3>
+            <table>
+                <thead><tr><th>서비스</th><th>이미지</th><th>포트 (Host:Container)</th><th>의존 서비스</th></tr></thead>
+                <tbody>
+                    <tr><td>redis</td><td>redis:7-alpine</td><td>6379:6379</td><td>-</td></tr>
+                    <tr><td>db</td><td>postgres:15-alpine</td><td>5433:5432</td><td>-</td></tr>
+                    <tr><td>celery-worker</td><td>로컬 빌드 (Dockerfile)</td><td>없음</td><td>redis, db</td></tr>
+                    <tr><td>web-app</td><td>로컬 빌드 (Dockerfile)</td><td>8000:8000</td><td>redis, db</td></tr>
+                </tbody>
+            </table>
+            <p style="font-size:0.82rem;color:#64748b;">llama.cpp 임베딩 서버(port 8081)는 Docker Compose 외부에서 별도 구동합니다.</p>
+
+            <h3>현재 .env 설정값</h3>
+            <pre><code><span class="comment"># 임베딩 서버 (Docker 외부 별도 구동)</span>
+<span class="key">LLAMA_API_URL</span>=<span class="val">http://localhost:8081</span>
+<span class="key">LLAMA_API_KEY</span>=<span class="val">embed-secure-key-1122</span>
+<span class="key">LLAMA_EMBED_MODE</span>=<span class="val">v1</span>
+
+<span class="comment"># 분류 임계값 (베이스라인 보정 후 기준값)</span>
+<span class="key">DANGER_THRESHOLD</span>=<span class="val">0.20</span>
+<span class="key">DANGER_THRESHOLDS</span>=<span class="val">{"폭력 및 폭행": 0.27, "성폭력": 0.27, "이물질 상품": 0.28, "식품위생": 0.28, "안전사고": 0.27, "법적/민원제기": 0.22, "언론제보": 0.22}</span>
+<span class="key">DANGER_KEYWORD_LINKED_THRESHOLD</span>=<span class="val">0.10</span>
+<span class="key">DANGER_KEYWORD_MIN_SAFEGUARD_SCORE</span>=<span class="val">0.15</span>
+<span class="key">DANGER_KEYWORD_GUIDE_WEIGHT</span>=<span class="val">0.35</span>
+
+<span class="comment"># 인프라</span>
+<span class="key">REDIS_URL</span>=<span class="val">redis://127.0.0.1:6379/0</span>
+<span class="key">DB_NAME</span>=<span class="val">ledger_db</span>
+<span class="key">DB_USER</span>=<span class="val">ledger_user</span>
+<span class="key">DB_PASSWORD</span>=<span class="val">ledger_pass</span>
+<span class="key">DB_HOST</span>=<span class="val">127.0.0.1</span>
+<span class="key">DB_PORT</span>=<span class="val">5433</span></code></pre>
+        </section>
+
+        <!-- 10. API 레퍼런스 -->
+        <section id="api" class="section">
+            <span class="section-tag">API Reference</span>
+            <h2>API 엔드포인트 레퍼런스 (14개)</h2>
+
+            <table>
+                <thead><tr><th>Method</th><th>경로</th><th>요청 본문 주요 필드</th><th>설명</th></tr></thead>
+                <tbody>
+                    <tr><td>GET</td><td>/</td><td>-</td><td>대시보드 UI (index.html) 반환</td></tr>
+                    <tr><td>GET</td><td>/guide</td><td>-</td><td>이 기술 백서 페이지 반환</td></tr>
+                    <tr><td>GET</td><td>/api/settings</td><td>-</td><td>현재 임계값·가이드라인 설정 조회</td></tr>
+                    <tr><td>GET</td><td>/api/health</td><td>-</td><td>임베딩 서버(8081) + DB 연결 상태 확인</td></tr>
+                    <tr><td>GET</td><td>/api/stats</td><td>-</td><td>status별 / risk_level별 / urgency_level별 집계</td></tr>
+                    <tr><td>GET</td><td>/api/history</td><td>-</td><td>최신 100건 상담 기록 조회</td></tr>
+                    <tr><td>POST</td><td>/api/extract/sync</td><td>text, thresholds, linked_threshold, min_safeguard, top_n</td><td>즉시 동기 분석 (DB 저장 없음, 슬라이더 테스트용)</td></tr>
+                    <tr><td>POST</td><td>/api/extract/async</td><td>text, thresholds, linked_threshold, min_safeguard, top_n</td><td>Celery 큐 등록 + DB PENDING 저장</td></tr>
+                    <tr><td>POST</td><td>/api/reanalyze/{id}</td><td>thresholds, linked_threshold, min_safeguard</td><td>특정 기록 재분석 (현재 임계값 즉시 적용)</td></tr>
+                    <tr><td>POST</td><td>/api/reanalyze-all</td><td>thresholds, linked_threshold, min_safeguard</td><td>전체 COMPLETED 기록 재분석</td></tr>
+                    <tr><td>POST</td><td>/api/feedback/{id}</td><td>is_correct, actual_danger, actual_external, actual_urgency, note</td><td>오분류 피드백 수집 → counseling_feedback 저장</td></tr>
+                    <tr><td>GET</td><td>/api/feedback/summary</td><td>-</td><td>카테고리별 정확도·오분류율 집계</td></tr>
+                    <tr><td>GET</td><td>/api/threshold-calibrate</td><td>-</td><td>피드백 기반 임계값 보정 제안 (min 5건)</td></tr>
+                    <tr><td>POST</td><td>/api/cleanup-pending</td><td>-</td><td>1시간 이상 PENDING → TIMEOUT 일괄 처리</td></tr>
+                </tbody>
+            </table>
+
+            <h3>/api/health 응답 예시</h3>
+            <pre><code>{
+  "status": "healthy",
+  "embedding_server": "ok",   <span class="comment"># or "error"</span>
+  "database": "ok"            <span class="comment"># or "error"</span>
+}</code></pre>
+
+            <h3>/api/stats 응답 예시</h3>
+            <pre><code>{
+  "total": 42,
+  "by_status": {"COMPLETED": 38, "PENDING": 2, "FAILED": 1, "TIMEOUT": 1},
+  "by_risk_level": {"정상 문의": 25, "식품위생": 8, "안전사고": 5, ...},
+  "by_urgency": {"MONITOR": 30, "SHORT-TERM": 8, "IMMEDIATE": 4}
+}</code></pre>
+        </section>
+
+        <!-- 11. 운영 런북 -->
+        <section id="runbook" class="section">
+            <span class="section-tag">Runbook</span>
+            <h2>운영 런북</h2>
+
+            <h3>배포 절차 (deploy.sh 6단계)</h3>
+            <pre><code><span class="comment"># 사전 조건: .env 파일이 프로젝트 루트에 존재, llama.cpp 서버 구동 중</span>
 bash deploy.sh
 
-<span class="comment"># 3. 서비스 상태 확인</span>
+<span class="comment"># [1/6] git pull (로컬 테스트 시 스킵됨)</span>
+<span class="comment"># [2/6] docker compose down && docker compose up --build -d</span>
+<span class="comment"># [3/6] PostgreSQL 기동 대기 최대 60초 → schema.sql 적용</span>
+<span class="comment"># [4/6] 웹 앱 /api/health 체크 최대 30초 대기</span>
+<span class="comment"># [5/6] 임베딩 서버 ok 시 /api/reanalyze-all 자동 실행</span>
+<span class="comment"># [6/6] docker compose ps 상태 출력</span></code></pre>
+
+            <h3>장애 대응 매트릭스</h3>
+            <table>
+                <thead><tr><th>증상</th><th>원인</th><th>조치</th></tr></thead>
+                <tbody>
+                    <tr><td>모든 결과가 "정상 문의"</td><td>llama.cpp 다운 또는 임계값 너무 높음</td><td><code>curl /api/health</code>의 embedding_server 확인 → llama.cpp 재시작</td></tr>
+                    <tr><td>모든 케이스 위험 분류</td><td>임계값 너무 낮음 또는 베이스라인 미초기화</td><td>서버 재시작으로 캐시 초기화 → UI 슬라이더로 임계값 상향 테스트</td></tr>
+                    <tr><td>PENDING 기록 누적</td><td>Celery 워커 중단 또는 Redis 장애</td><td><code>docker compose logs celery-worker</code> → 재시작. UI 🧹 버튼으로 오래된 PENDING 정리</td></tr>
+                    <tr><td>재분석 500 오류</td><td>DB 연결 실패</td><td><code>/api/health</code>의 database 필드 확인 → PostgreSQL 컨테이너 점검</td></tr>
+                    <tr><td>심각도 점수 항상 낮음</td><td>critical_words 목록 미포함 단어</td><td><code>worker.py</code>의 <code>critical_words</code> 집합에 단어 추가 후 재배포</td></tr>
+                    <tr><td>IMMEDIATE 과다 오판</td><td>과거형 감지 미동작</td><td>Kiwi 설치 버전 확인. 예: "었/았" 어미 형태소가 EP/EF/EC 태그로 분석되는지 검증</td></tr>
+                </tbody>
+            </table>
+
+            <h3>주요 모니터링 명령어</h3>
+            <pre><code><span class="comment"># 서비스 상태 전체 확인</span>
 docker compose ps
-curl http://localhost:8000/api/health</code></pre>
 
-                <h3 style="margin:1.5rem 0 0.5rem;color:#a78bfa;">장애 대응</h3>
-                <table class="triage-table" style="font-size:0.82rem;">
-                    <thead><tr><th>증상</th><th>원인</th><th>조치</th></tr></thead>
-                    <tbody>
-                        <tr><td>분석 결과가 모두 "정상 문의"</td><td>임베딩 서버 다운 또는 임계값 너무 높음</td><td><code>curl /api/health</code> 확인 → llama.cpp 재시작 또는 .env 임계값 낮춤</td></tr>
-                        <tr><td>모든 케이스에 위험 분류</td><td>임계값 너무 낮음 / 베이스라인 미초기화</td><td>슬라이더로 임계값 상향 테스트 → .env 반영 후 재배포</td></tr>
-                        <tr><td>PENDING 기록 쌓임</td><td>Celery 워커 중단 또는 Redis 연결 끊김</td><td><code>docker compose logs celery-worker</code> → UI에서 🧹 PENDING 정리</td></tr>
-                        <tr><td>재분석 버튼 동작 안 함</td><td>웹 앱과 DB 연결 실패</td><td><code>curl /api/health</code>의 database 필드 확인</td></tr>
-                        <tr><td>시급성 오판정 (IMMEDIATE 과다)</td><td>과거 사건을 현재로 판단</td><td>정상 동작 — 개선된 과거형 감지 로직 포함됨</td></tr>
-                    </tbody>
-                </table>
+<span class="comment"># 헬스체크</span>
+curl http://localhost:8000/api/health
 
-                <h3 style="margin:1.5rem 0 0.5rem;color:#a78bfa;">임계값 튜닝 가이드</h3>
-                <p>임계값은 <code>.env</code> 파일의 <code>DANGER_THRESHOLDS</code>에서 관리합니다. 변경 후 반드시 재배포 필요.</p>
-                <pre><code><span class="comment"># .env 예시 (낮을수록 민감, 높을수록 엄격)</span>
-DANGER_THRESHOLDS={"폭력 및 폭행": 0.27, "성폭력": 0.27, "이물질 상품": 0.28, "식품위생": 0.28, "안전사고": 0.27, "법적/민원제기": 0.22, "언론제보": 0.22}
+<span class="comment"># Celery 워커 실시간 로그</span>
+docker compose logs -f celery-worker
 
-<span class="comment"># UI 슬라이더로 실시간 테스트 후 효과가 검증된 값을 .env에 반영</span>
-<span class="comment"># 피드백 기반 보정 제안: UI 하단 "🔬 임계값 보정 제안" 버튼 클릭</span></code></pre>
+<span class="comment"># 처리 현황 통계</span>
+curl http://localhost:8000/api/stats
 
-                <h3 style="margin:1.5rem 0 0.5rem;color:#a78bfa;">심각도(Severity) 해석 기준</h3>
-                <table class="triage-table" style="font-size:0.82rem;">
-                    <thead><tr><th>점수</th><th>의미</th><th>권장 대응</th></tr></thead>
-                    <tbody>
-                        <tr><td style="color:#ef4444;font-weight:700;">10점</td><td>사망·자살·자해 등 critical 키워드</td><td>즉각 CSO + 법무 에스컬레이션</td></tr>
-                        <tr><td style="color:#f87171;font-weight:700;">8~9점</td><td>다중 위협 + IMMEDIATE 시급성 + 공격적 어조</td><td>PR + Legal + QA 긴급 배정</td></tr>
-                        <tr><td style="color:#fbbf24;font-weight:700;">5~7점</td><td>위험 카테고리 탐지 + 법적/언론 위협</td><td>CS 총괄 매니저 배정 (SLA 24h)</td></tr>
-                        <tr><td style="color:#34d399;font-weight:700;">1~4점</td><td>단순 위험 언급 또는 일반 불만</td><td>CS 선임 상담원 배정 (SLA 48h)</td></tr>
-                    </tbody>
-                </table>
+<span class="comment"># 피드백 정확도 현황</span>
+curl http://localhost:8000/api/feedback/summary
 
-                <h3 style="margin:1.5rem 0 0.5rem;color:#a78bfa;">API 엔드포인트 목록</h3>
-                <table class="triage-table" style="font-size:0.82rem;">
-                    <thead><tr><th>Method</th><th>경로</th><th>설명</th></tr></thead>
-                    <tbody>
-                        <tr><td>GET</td><td>/api/health</td><td>임베딩 서버 + DB 상태</td></tr>
-                        <tr><td>GET</td><td>/api/stats</td><td>상태별/위험도별/시급성별 집계</td></tr>
-                        <tr><td>GET</td><td>/api/settings</td><td>현재 임계값 설정 조회</td></tr>
-                        <tr><td>GET</td><td>/api/history</td><td>최근 100건 조회</td></tr>
-                        <tr><td>POST</td><td>/api/extract/sync</td><td>실시간 동기 분석</td></tr>
-                        <tr><td>POST</td><td>/api/extract/async</td><td>Celery 비동기 분석 등록</td></tr>
-                        <tr><td>POST</td><td>/api/reanalyze/{id}</td><td>특정 건 재분석</td></tr>
-                        <tr><td>POST</td><td>/api/reanalyze-all</td><td>전체 재분석</td></tr>
-                        <tr><td>POST</td><td>/api/feedback/{id}</td><td>오분류 피드백 제출</td></tr>
-                        <tr><td>GET</td><td>/api/feedback/summary</td><td>피드백 정확도 집계</td></tr>
-                        <tr><td>GET</td><td>/api/threshold-calibrate</td><td>피드백 기반 임계값 보정 제안</td></tr>
-                        <tr><td>POST</td><td>/api/cleanup-pending</td><td>타임아웃 PENDING 정리</td></tr>
-                    </tbody>
-                </table>
-            </section>
+<span class="comment"># 임계값 보정 제안 확인</span>
+curl http://localhost:8000/api/threshold-calibrate</code></pre>
 
-            <section id="roadmap" class="section">
-                <span class="section-tag">Roadmap</span>
-                <h2>확장 로드맵</h2>
-                <ol class="compare-list" style="padding-left:1.5rem;line-height:2.2;">
-                    <li><strong>LLM 연계</strong> — 탐지 결과 기반 자동 응답 초안 생성 (GPT-4 / Claude API)</li>
-                    <li><strong>CRM 통합</strong> — Salesforce / 자체 CRM에 탐지 결과 자동 티켓 생성</li>
-                    <li><strong>알림 자동화</strong> — Slack / 이메일 / SMS로 IMMEDIATE 케이스 즉각 전파</li>
-                    <li><strong>피드백 자동 학습</strong> — 누적 피드백 → 임계값 자동 보정 → 주기적 재배포 파이프라인</li>
-                    <li><strong>음성 입력</strong> — STT(Speech-to-Text) 연계로 통화 녹취 실시간 분석</li>
-                    <li><strong>멀티 테넌트</strong> — 브랜드/점포별 독립 임계값 프로파일</li>
-                </ol>
+            <h3>UI 주요 기능 요약</h3>
+            <table>
+                <thead><tr><th>기능</th><th>위치</th><th>동작</th></tr></thead>
+                <tbody>
+                    <tr><td>⚡ 실시간 분석</td><td>입력 패널</td><td>/api/extract/sync 호출 (DB 저장 없음)</td></tr>
+                    <tr><td>📥 큐 등록</td><td>입력 패널</td><td>/api/extract/async 호출 + DB PENDING 저장</td></tr>
+                    <tr><td>🔄 건별 재분석</td><td>히스토리 행</td><td>/api/reanalyze/{id} (현재 슬라이더 값 적용)</td></tr>
+                    <tr><td>🔄 전체 재분석</td><td>DB 패널</td><td>/api/reanalyze-all</td></tr>
+                    <tr><td>🧹 PENDING 정리</td><td>DB 패널</td><td>/api/cleanup-pending (1시간 이상 PENDING → TIMEOUT)</td></tr>
+                    <tr><td>🔬 임계값 보정 제안</td><td>DB 패널 하단</td><td>/api/threshold-calibrate 결과 패널 토글</td></tr>
+                    <tr><td>✓ / ✗ 피드백</td><td>히스토리 행</td><td>/api/feedback/{id} 제출</td></tr>
+                    <tr><td>헬스 인디케이터</td><td>DB 패널 상단</td><td>30초 간격 /api/health 자동 갱신</td></tr>
+                    <tr><td>히스토리 폴링</td><td>자동</td><td>3초 간격 /api/history 자동 갱신</td></tr>
+                </tbody>
+            </table>
+        </section>
 
-                <div class="footer-logo">
-                    <p>© 2026 Intelligence Risk Detection & Triage System. All Rights Reserved.</p>
-                    <p style="font-size: 0.75rem; margin-top: 0.5rem;">Powered by BGE-M3 · FastAPI · Celery · PostgreSQL</p>
+        <!-- 12. 임계값 튜닝 가이드 -->
+        <section id="thresholds" class="section">
+            <span class="section-tag">Tuning Guide</span>
+            <h2>임계값 튜닝 가이드</h2>
+            <p>모든 임계값은 <code>.env</code>의 <code>DANGER_THRESHOLDS</code>에서 관리합니다. 변경 후 반드시 재배포해야 적용됩니다. UI 슬라이더는 재배포 없이 임시 테스트에 사용합니다.</p>
+
+            <h3>임계값 의미 (베이스라인 보정 후 기준)</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">값을 낮출 때 (예: 0.27 → 0.22)</div>
+                    <ul class="bullet">
+                        <li>더 많은 케이스를 위험으로 탐지 (민감도 ↑)</li>
+                        <li>오탐(정상 → 위험 오분류) 증가 위험</li>
+                        <li>피드백 정확도 > 90%일 때 고려</li>
+                    </ul>
                 </div>
-            </section>
-        </main>
-    </div>
+                <div class="card">
+                    <div class="card-title">값을 높일 때 (예: 0.22 → 0.27)</div>
+                    <ul class="bullet">
+                        <li>탐지 건수 감소 (특이도 ↑)</li>
+                        <li>미탐(위험 → 정상 오분류) 증가 위험</li>
+                        <li>피드백 정확도 < 60%일 때 고려</li>
+                    </ul>
+                </div>
+            </div>
 
-    <script>
-        // Sidebar active state highlights on scroll
-        const sections = document.querySelectorAll('.section');
-        const navLi = document.querySelectorAll('.sidebar a');
-        
-        window.addEventListener('scroll', () => {
-            let current = '';
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                const sectionHeight = section.clientHeight;
-                if (pageYOffset >= (sectionTop - 250)) {
-                    current = section.getAttribute('id');
-                }
-            });
+            <h3>슬라이더 범위 (UI 기준)</h3>
+            <table>
+                <thead><tr><th>슬라이더</th><th>범위</th><th>현재 .env 기본값</th><th>의미</th></tr></thead>
+                <tbody>
+                    <tr><td>카테고리 임계값</td><td>0.30 ~ 0.95 (step 0.01)</td><td>카테고리별 0.22~0.28</td><td>각 카테고리 탐지 민감도</td></tr>
+                    <tr><td>연관 키워드 임계값 (linked)</td><td>0.30 ~ 0.80 (step 0.01)</td><td>0.10</td><td>렉시콘 매칭 시 완화 임계값</td></tr>
+                    <tr><td>안전망 임계값 (safeguard)</td><td>0.30 ~ 0.80 (step 0.01)</td><td>0.15</td><td>문서 판정 일치 카테고리 최소 임계값</td></tr>
+                </tbody>
+            </table>
 
-            navLi.forEach(a => {
-                a.classList.remove('active');
-                if (a.getAttribute('href') === `#${current}`) {
-                    a.classList.add('active');
-                }
-            });
+            <h3>권장 튜닝 절차</h3>
+            <div class="flow-step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <div class="step-title">실제 샘플 텍스트로 UI 슬라이더 테스트</div>
+                    <div class="step-desc">오탐/미탐이 발생하는 경계값 파악</div>
+                </div>
+            </div>
+            <div class="flow-step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <div class="step-title">피드백 누적 후 🔬 보정 제안 확인</div>
+                    <div class="step-desc">5건 이상 피드백 시 /api/threshold-calibrate 제안 신뢰도 향상</div>
+                </div>
+            </div>
+            <div class="flow-step">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <div class="step-title">.env의 DANGER_THRESHOLDS JSON 수정</div>
+                    <div class="step-desc">카테고리별로 개별 조정 가능. 미지정 카테고리는 DANGER_THRESHOLD(0.20) 적용</div>
+                </div>
+            </div>
+            <div class="flow-step">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <div class="step-title">bash deploy.sh → 전체 재분석</div>
+                    <div class="step-desc">임베딩 서버 준비 시 기존 데이터 자동 재분석. 또는 UI에서 🔄 전체 재분석 수동 실행</div>
+                </div>
+            </div>
+
+            <h3>카테고리별 권장 임계값 범위</h3>
+            <table>
+                <thead><tr><th>카테고리</th><th>현재값</th><th>최소 권장</th><th>최대 권장</th><th>특이사항</th></tr></thead>
+                <tbody>
+                    <tr><td>폭력 및 폭행</td><td>0.27</td><td>0.20</td><td>0.35</td><td>렉시콘이 탄탄하여 낮게 유지 가능</td></tr>
+                    <tr><td>성폭력</td><td>0.27</td><td>0.22</td><td>0.35</td><td>민감 카테고리 — 낮게 유지 권장</td></tr>
+                    <tr><td>이물질 상품</td><td>0.28</td><td>0.22</td><td>0.35</td><td>식품 맥락과 의미 중첩 있어 높게 설정</td></tr>
+                    <tr><td>식품위생</td><td>0.28</td><td>0.22</td><td>0.35</td><td>단순 불만과 구분이 미묘함</td></tr>
+                    <tr><td>안전사고</td><td>0.27</td><td>0.20</td><td>0.32</td><td>응급실/구급차 렉시콘 효과 강함</td></tr>
+                    <tr><td>법적/민원제기</td><td>0.22</td><td>0.18</td><td>0.30</td><td>법률 어휘가 명확하여 낮게 가능</td></tr>
+                    <tr><td>언론제보</td><td>0.22</td><td>0.18</td><td>0.30</td><td>SNS/유튜브 단어 명확</td></tr>
+                </tbody>
+            </table>
+
+            <div class="footer-logo">
+                <p>© 2026 Intelligence Risk Detection & Analysis System (IRDA v3)</p>
+                <p style="margin-top:0.4rem;">BGE-M3 (BAAI/bge-m3) · FastAPI · Celery · PostgreSQL 15 · Docker Compose</p>
+                <p style="margin-top:0.3rem;">본 문서는 현재 시스템 코드(worker.py, web_app.py, schema.sql)를 기준으로 작성되었습니다.</p>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script>
+    const sections = document.querySelectorAll('.section');
+    const navLinks = document.querySelectorAll('.sidebar a');
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(s => {
+            if (pageYOffset >= s.offsetTop - 200) current = s.getAttribute('id');
         });
-    </script>
+        navLinks.forEach(a => {
+            a.classList.toggle('active', a.getAttribute('href') === `#${current}`);
+        });
+    });
+</script>
 </body>
 </html>
