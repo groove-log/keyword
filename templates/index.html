@@ -852,9 +852,9 @@
         .slider-group {
             display: flex;
             flex-direction: column;
-            gap: 0.35rem;
+            gap: 0.4rem;
             background: rgba(0, 0, 0, 0.2);
-            padding: 0.6rem 0.8rem;
+            padding: 0.65rem 0.8rem;
             border-radius: 0.5rem;
             border: 1px solid rgba(255, 255, 255, 0.03);
         }
@@ -865,41 +865,32 @@
             font-size: 0.8rem;
             font-weight: 500;
         }
-        .slider-row {
+        /* 5단계 감도 버튼 */
+        .sens-bar {
             display: flex;
-            align-items: center;
-            gap: 0.75rem;
+            gap: 0.25rem;
         }
-        .slider-row input[type="range"] {
+        .sens-btn {
             flex: 1;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
-            outline: none;
-            -webkit-appearance: none;
+            padding: 0.3rem 0;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border-radius: 0.35rem;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+            color: #64748b;
             cursor: pointer;
+            text-align: center;
+            transition: all 0.15s;
+            white-space: nowrap;
         }
-        .slider-row input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #a5b4fc;
-            cursor: pointer;
-            box-shadow: 0 0 6px #7c3aed;
-            transition: transform 0.1s ease;
-        }
-        .slider-row input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.25);
-        }
-        .slider-value {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: #a5b4fc;
-            width: 2.2rem;
-            text-align: right;
-            font-family: 'Outfit', sans-serif;
-        }
+        .sens-btn:hover { border-color: rgba(167,139,250,0.4); color: #c4b5fd; }
+        .sens-btn.active-1 { background: rgba(239,68,68,0.2); border-color: #ef4444; color: #fca5a5; }
+        .sens-btn.active-2 { background: rgba(249,115,22,0.2); border-color: #f97316; color: #fdba74; }
+        .sens-btn.active-3 { background: rgba(139,92,246,0.25); border-color: #8b5cf6; color: #c4b5fd; }
+        .sens-btn.active-4 { background: rgba(16,185,129,0.15); border-color: #10b981; color: #6ee7b7; }
+        .sens-btn.active-5 { background: rgba(100,116,139,0.2); border-color: #64748b; color: #94a3b8; }
+        .sens-hint { font-size: 0.68rem; color: #334155; text-align: right; }
     </style>
 </head>
 <body>
@@ -1223,94 +1214,127 @@
 
     // 임계값 슬라이더 렌더링
     function renderSliders() {
+        // 5단계 감도 레이블 및 카테고리별 임계값 매핑
+        // 기본값(보통=3단계)이 중앙, 좌=민감(낮은 임계값), 우=엄격(높은 임계값)
+        const SENS_LEVELS = [
+            { label: "매우\n민감", step: 1 },
+            { label: "민감",     step: 2 },
+            { label: "보통",     step: 3 },
+            { label: "엄격",     step: 4 },
+            { label: "매우\n엄격", step: 5 },
+        ];
+        // 카테고리별 기본값을 "보통(3)"으로 매핑, 각 단계 배율
+        const SENS_SCALE = [0.45, 0.72, 1.0, 1.35, 1.75];
+
+        function thresholdToStep(val, defaultVal) {
+            // 현재 값이 어느 단계에 가장 가까운지
+            let best = 2, bestDiff = 999;
+            SENS_SCALE.forEach((s, i) => {
+                const diff = Math.abs(val - defaultVal * s);
+                if (diff < bestDiff) { bestDiff = diff; best = i; }
+            });
+            return best;
+        }
+
+        function stepToThreshold(step, defaultVal) {
+            return parseFloat((defaultVal * SENS_SCALE[step]).toFixed(3));
+        }
+
+        function makeSensBar(categoryKey, currentVal, defaultVal, colorClass) {
+            const activeStep = thresholdToStep(currentVal, defaultVal);
+            return SENS_LEVELS.map((lv, i) => {
+                const isActive = i === activeStep;
+                const activeClass = isActive ? `active-${i + 1}` : '';
+                return `<button class="sens-btn ${activeClass}"
+                    onclick="setSensLevel('${categoryKey}', ${i}, ${defaultVal})"
+                    title="임계값 ${stepToThreshold(i, defaultVal).toFixed(3)}"
+                >${lv.label}</button>`;
+            }).join('');
+        }
+
         const container = document.getElementById("threshold-sliders-container");
         container.innerHTML = "";
-        
-        // 1. 일반 위험 카테고리 슬라이더들 렌더링
+
+        // 1. 위험 카테고리별 5단계 감도 버튼
         Object.keys(activeThresholds).forEach(category => {
             const val = activeThresholds[category];
+            const defaultVal = (defaultThresholds && defaultThresholds[category]) ? defaultThresholds[category] : val;
             const group = document.createElement("div");
             group.className = "slider-group";
             group.innerHTML = `
                 <div class="slider-header">
                     <span>${category}</span>
                 </div>
-                <div class="slider-row">
-                    <input type="range" min="0.05" max="0.50" step="0.01" value="${val}"
-                        oninput="updateThresholdValue('${category}', this.value)">
-                    <span class="slider-value" id="val-${category}">${val.toFixed(2)}</span>
-                </div>
-                <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:#475569;margin-top:-0.1rem;">
-                    <span>← 민감 (더 많이 탐지)</span><span>(더 적게 탐지) 엄격 →</span>
+                <div class="sens-bar" id="sens-${category}">
+                    ${makeSensBar(category, val, defaultVal, '')}
                 </div>
             `;
             container.appendChild(group);
         });
 
-        // 2. 연관 키워드 완화 임계값 슬라이더 추가 (구분선과 함께)
+        // 2. 연관 키워드 완화 — 5단계
+        const linkedDefault = defaultLinkedThreshold || 0.10;
         const linkedGroup = document.createElement("div");
         linkedGroup.className = "slider-group";
-        linkedGroup.style.borderTop = "1px solid rgba(255, 255, 255, 0.1)";
+        linkedGroup.style.borderTop = "1px solid rgba(255,255,255,0.08)";
         linkedGroup.style.marginTop = "0.5rem";
-        linkedGroup.style.paddingTop = "0.75rem";
+        linkedGroup.style.paddingTop = "0.65rem";
         linkedGroup.innerHTML = `
-            <div class="slider-header" style="color: #60a5fa; display: flex; align-items: center; justify-content: space-between;">
-                <span>🔗 연관 키워드 매핑 완화 임계값</span>
+            <div class="slider-header" style="color:#60a5fa;">
+                <span>🔗 위험 키워드 감지 감도</span>
             </div>
-            <div class="slider-row">
-                <input type="range" min="0.01" max="0.20" step="0.01" value="${activeLinkedThreshold}"
-                    oninput="updateLinkedThresholdValue(this.value)">
-                <span class="slider-value" id="val-linked-threshold" style="color: #60a5fa; width: 2.2rem; text-align: right;">${activeLinkedThreshold.toFixed(2)}</span>
+            <div class="sens-bar" id="sens-linked">
+                ${makeSensBar('__linked__', activeLinkedThreshold, linkedDefault, 'blue')}
             </div>
-            <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:#475569;margin-top:-0.1rem;">
-                <span>← 민감</span><span>엄격 →</span>
-            </div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
-                * 본문 판정 카테고리와 키워드의 최고 매칭 카테고리가 일치할 경우 적용되는 완화 임계값입니다.
-            </div>
+            <div class="sens-hint">렉시콘 단어 포함 시 적용 · 낮을수록 더 많이 잡음</div>
         `;
         container.appendChild(linkedGroup);
 
-        // 3. 안전 제한 임계값 (Safeguard Threshold) 슬라이더 추가
+        // 3. 안전망 — 5단계
+        const safeguardDefault = defaultMinSafeguardScore || 0.15;
         const safeguardGroup = document.createElement("div");
         safeguardGroup.className = "slider-group";
-        safeguardGroup.style.borderTop = "1px solid rgba(255, 255, 255, 0.1)";
+        safeguardGroup.style.borderTop = "1px solid rgba(255,255,255,0.08)";
         safeguardGroup.style.marginTop = "0.5rem";
-        safeguardGroup.style.paddingTop = "0.75rem";
+        safeguardGroup.style.paddingTop = "0.65rem";
         safeguardGroup.innerHTML = `
-            <div class="slider-header" style="color: #ec4899; display: flex; align-items: center; justify-content: space-between;">
-                <span>🛡️ 안전 제한 임계값 (Safeguard Threshold)</span>
+            <div class="slider-header" style="color:#ec4899;">
+                <span>🛡️ 오탐 방지 강도</span>
             </div>
-            <div class="slider-row">
-                <input type="range" min="0.05" max="0.30" step="0.01" value="${activeMinSafeguardScore}"
-                    oninput="updateMinSafeguardValue(this.value)">
-                <span class="slider-value" id="val-min-safeguard" style="color: #ec4899; width: 2.2rem; text-align: right;">${activeMinSafeguardScore.toFixed(2)}</span>
+            <div class="sens-bar" id="sens-safeguard">
+                ${makeSensBar('__safeguard__', activeMinSafeguardScore, safeguardDefault, 'pink')}
             </div>
-            <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:#475569;margin-top:-0.1rem;">
-                <span>← 민감</span><span>엄격 →</span>
-            </div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
-                * 단일 키워드의 유사도가 이 점수 미만일 경우 연관 매핑 조건(완화 임계값)을 충족하더라도 안전하게 '정상'으로 분류합니다.
-            </div>
+            <div class="sens-hint">낮을수록 키워드를 더 관대하게 허용</div>
         `;
         container.appendChild(safeguardGroup);
     }
 
-    // 슬라이더 값 변경 시 실시간 반영
+    // 5단계 버튼 클릭 시 임계값 업데이트
+    function setSensLevel(categoryKey, step, defaultVal) {
+        const newVal = parseFloat((defaultVal * [0.45, 0.72, 1.0, 1.35, 1.75][step]).toFixed(3));
+        if (categoryKey === '__linked__') {
+            activeLinkedThreshold = newVal;
+        } else if (categoryKey === '__safeguard__') {
+            activeMinSafeguardScore = newVal;
+        } else {
+            activeThresholds[categoryKey] = newVal;
+        }
+        // 버튼 강조 갱신
+        const bar = document.getElementById(`sens-${categoryKey === '__linked__' ? 'linked' : categoryKey === '__safeguard__' ? 'safeguard' : categoryKey}`);
+        if (bar) {
+            bar.querySelectorAll('.sens-btn').forEach((btn, i) => {
+                btn.className = 'sens-btn' + (i === step ? ` active-${i + 1}` : '');
+            });
+        }
+    }
+
+    // (하위 호환: 슬라이더 관련 함수 stub — 더 이상 슬라이더 없음)
     function updateThresholdValue(category, val) {
-        const parsedVal = parseFloat(val);
-        activeThresholds[category] = parsedVal;
-        document.getElementById(`val-${category}`).innerText = parsedVal.toFixed(2);
+        activeThresholds[category] = parseFloat(val);
     }
-
-    // 연관 임계값 변경 시 실시간 반영
     function updateLinkedThresholdValue(val) {
-        const parsedVal = parseFloat(val);
-        activeLinkedThreshold = parsedVal;
-        document.getElementById("val-linked-threshold").innerText = parsedVal.toFixed(2);
+        activeLinkedThreshold = parseFloat(val);
     }
-
-    // 안전 제한 임계값 변경 시 실시간 반영
     function updateMinSafeguardValue(val) {
         const parsedVal = parseFloat(val);
         activeMinSafeguardScore = parsedVal;
