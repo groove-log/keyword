@@ -924,33 +924,32 @@
                 <textarea id="text-input" placeholder="이곳에 분석하고 싶으신 상담 데이터나 문서 본문을 입력해 주세요...&#10;&#10;예) 배송이 계속 지연되고 있습니다. 소비자원에 민원을 넣기 전에 즉각 환불 조치 바랍니다."></textarea>
             </div>
 
-            <div class="options-row">
-                <div class="form-group">
-                    <label for="ngram-select">N-gram (단어 복합수)</label>
-                    <select id="ngram-select">
-                        <option value="1-1">1단어 키워드 (1-1)</option>
-                        <option value="1-2">1~2단어 키워드 (1-2)</option>
-                        <option value="1-3" selected>1~3단어 복합 구문 (1-3)</option>
-                        <option value="2-3">2~3단어 위주 (2-3)</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="topn-select">추출 개수 (Top N)</label>
-                    <select id="topn-select">
-                        <option value="3">상위 3개 키워드</option>
-                        <option value="5" selected>상위 5개 키워드 (권장)</option>
-                        <option value="8">상위 8개 키워드</option>
-                    </select>
-                </div>
-            </div>
-
             <!-- Collapsible Settings Panel -->
             <details class="settings-drawer" id="settings-panel">
                 <summary>
-                    ⚙️ 세부 위험 임계값 실시간 튜닝 (Threshold Settings)
+                    ⚙️ 분석 설정 및 감도 조정
                 </summary>
                 <div class="settings-content">
+                    <!-- 추출 옵션 (비기술 사용자는 건드릴 필요 없음) -->
+                    <div style="display: flex; gap: 0.75rem;">
+                        <div class="form-group" style="flex: 1; margin: 0;">
+                            <label for="ngram-select" style="font-size: 0.78rem; color: var(--text-muted);">키워드 길이</label>
+                            <select id="ngram-select" style="font-size: 0.8rem; padding: 0.3rem 0.5rem;">
+                                <option value="1-1">단어 1개</option>
+                                <option value="1-2">1~2단어</option>
+                                <option value="1-3" selected>1~3단어 (권장)</option>
+                                <option value="2-3">2~3단어</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 1; margin: 0;">
+                            <label for="topn-select" style="font-size: 0.78rem; color: var(--text-muted);">추출 개수</label>
+                            <select id="topn-select" style="font-size: 0.8rem; padding: 0.3rem 0.5rem;">
+                                <option value="3">상위 3개</option>
+                                <option value="5" selected>상위 5개 (권장)</option>
+                                <option value="8">상위 8개</option>
+                            </select>
+                        </div>
+                    </div>
                     <div id="threshold-sliders-container">
                         <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 1rem;">
                             임계값 데이터를 불러오는 중...
@@ -1415,7 +1414,7 @@
             const data = await response.json();
             
             if (response.ok) {
-                renderResults(data.keywords, data.elapsed_ms, "실시간 동기 분석 (Sync)", data.risk_level, data.external_issue, data.urgency_level, data.detected_categories, data);
+                renderResults(data.keywords, data.elapsed_ms, "실시간 동기 분석", data.risk_level, data.external_issue, data.urgency_level, data.detected_categories, data);
                 showToast("⚡ 분석 완료", `소요 시간: ${data.elapsed_ms}ms`, true);
             } else {
                 showToast("❌ 에러 발생", data.detail || "분석 실패", false);
@@ -1508,6 +1507,7 @@
             alarmIcon.innerText = "🚨";
             alarmText.innerText = "CRITICAL ALERT — 즉각 대응 필요 (심각도 10/10)";
             alarmDispatchBadge.innerText = "CSO / 법무 / PR 즉각 에스컬레이션";
+            alarmBanner.style.display = "flex";
         } else if (isSevere) {
             if (normUrgency === "IMMEDIATE" || sevScore >= 8) {
                 alarmBanner.className = "alarm-banner alarm-red";
@@ -1844,8 +1844,9 @@
                     try {
                         const parsed = JSON.parse(log.keywords);
                         if (Array.isArray(parsed)) {
-                            keywordsHTML = `<div class="keyword-badge-container">`;
-                            parsed.forEach(item => {
+                            const MAX_VISIBLE = 3;
+                            keywordsHTML = `<div class="keyword-badge-container" style="flex-wrap:nowrap;overflow:hidden;">`;
+                            parsed.slice(0, MAX_VISIBLE).forEach(item => {
                                 const isNormalWord = item.risk_category === "정상";
                                 const isExternalWord = ["법적/민원제기", "언론제보"].includes(item.risk_category);
                                 
@@ -1866,6 +1867,9 @@
                                     </span>
                                 `;
                             });
+                            if (parsed.length > MAX_VISIBLE) {
+                                keywordsHTML += `<span style="font-size:0.68rem;color:var(--text-muted);background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:4px;padding:0.1rem 0.3rem;">+${parsed.length - MAX_VISIBLE}</span>`;
+                            }
                             keywordsHTML += `</div>`;
                         } else {
                             keywordsHTML = log.keywords;
