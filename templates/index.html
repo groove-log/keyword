@@ -885,11 +885,12 @@
             white-space: nowrap;
         }
         .sens-btn:hover { border-color: rgba(167,139,250,0.4); color: #c4b5fd; }
-        .sens-btn.active-1 { background: rgba(239,68,68,0.2); border-color: #ef4444; color: #fca5a5; }
-        .sens-btn.active-2 { background: rgba(249,115,22,0.2); border-color: #f97316; color: #fdba74; }
+        /* 왼쪽=느슨(회색), 중앙=보통(보라), 오른쪽=촘촘(빨강) */
+        .sens-btn.active-1 { background: rgba(100,116,139,0.2); border-color: #64748b; color: #94a3b8; }
+        .sens-btn.active-2 { background: rgba(16,185,129,0.15); border-color: #10b981; color: #6ee7b7; }
         .sens-btn.active-3 { background: rgba(139,92,246,0.25); border-color: #8b5cf6; color: #c4b5fd; }
-        .sens-btn.active-4 { background: rgba(16,185,129,0.15); border-color: #10b981; color: #6ee7b7; }
-        .sens-btn.active-5 { background: rgba(100,116,139,0.2); border-color: #64748b; color: #94a3b8; }
+        .sens-btn.active-4 { background: rgba(249,115,22,0.2); border-color: #f97316; color: #fdba74; }
+        .sens-btn.active-5 { background: rgba(239,68,68,0.2); border-color: #ef4444; color: #fca5a5; }
         .sens-hint { font-size: 0.68rem; color: #334155; text-align: right; }
     </style>
 </head>
@@ -1215,16 +1216,16 @@
     // 임계값 슬라이더 렌더링
     function renderSliders() {
         // 5단계 감도 레이블 및 카테고리별 임계값 매핑
-        // 기본값(보통=3단계)이 중앙, 좌=민감(낮은 임계값), 우=엄격(높은 임계값)
+        // 오른쪽 = 강함(촘촘, 낮은 임계값 = 더 많이 탐지) — 인간 직관과 일치
         const SENS_LEVELS = [
-            { label: "매우\n민감", step: 1 },
-            { label: "민감",     step: 2 },
-            { label: "보통",     step: 3 },
-            { label: "엄격",     step: 4 },
-            { label: "매우\n엄격", step: 5 },
+            { label: "매우\n느슨", step: 1 },
+            { label: "느슨",      step: 2 },
+            { label: "보통",      step: 3 },
+            { label: "촘촘",      step: 4 },
+            { label: "매우\n촘촘", step: 5 },
         ];
-        // 카테고리별 기본값을 "보통(3)"으로 매핑, 각 단계 배율
-        const SENS_SCALE = [0.45, 0.72, 1.0, 1.35, 1.75];
+        // 오른쪽(촘촘)일수록 임계값 낮음(배율 작음) — 역순 배율
+        const SENS_SCALE = [1.75, 1.35, 1.0, 0.72, 0.45];
 
         function thresholdToStep(val, defaultVal) {
             // 현재 값이 어느 단계에 가장 가까운지
@@ -1286,7 +1287,7 @@
             <div class="sens-bar" id="sens-linked">
                 ${makeSensBar('__linked__', activeLinkedThreshold, linkedDefault, 'blue')}
             </div>
-            <div class="sens-hint">렉시콘 단어 포함 시 적용 · 낮을수록 더 많이 잡음</div>
+            <div class="sens-hint">렉시콘 단어 포함 시 적용 · 오른쪽일수록 더 많이 잡음</div>
         `;
         container.appendChild(linkedGroup);
 
@@ -1304,7 +1305,7 @@
             <div class="sens-bar" id="sens-safeguard">
                 ${makeSensBar('__safeguard__', activeMinSafeguardScore, safeguardDefault, 'pink')}
             </div>
-            <div class="sens-hint">낮을수록 키워드를 더 관대하게 허용</div>
+            <div class="sens-hint">왼쪽일수록 키워드를 더 관대하게 허용</div>
         `;
         container.appendChild(safeguardGroup);
     }
