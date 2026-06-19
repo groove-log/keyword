@@ -633,7 +633,7 @@
             background: rgba(255, 255, 255, 0.05);
             color: var(--text-muted);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            font-size: 0.7Gram;
+            font-size: 0.7rem;
             padding: 0.05rem 0.25rem;
             border-radius: 4px;
             font-family: 'Outfit', sans-serif;
@@ -891,7 +891,14 @@
         .sens-btn.active-3 { background: rgba(139,92,246,0.25); border-color: #8b5cf6; color: #c4b5fd; }
         .sens-btn.active-4 { background: rgba(249,115,22,0.2); border-color: #f97316; color: #fdba74; }
         .sens-btn.active-5 { background: rgba(239,68,68,0.2); border-color: #ef4444; color: #fca5a5; }
-        .sens-hint { font-size: 0.68rem; color: #334155; text-align: right; }
+        .sens-hint { font-size: 0.68rem; color: #64748b; text-align: right; }
+
+        /* 대외이슈 배지 (테이블 + 결과 영역용) */
+        .word-cloud-badge-external-badge {
+            background: rgba(139, 92, 246, 0.12);
+            color: #c084fc;
+            border: 1px solid rgba(139, 92, 246, 0.35);
+        }
     </style>
 </head>
 <body>
@@ -1028,7 +1035,7 @@
     <!-- Bottom Section: DB Live Logs -->
     <div class="panel db-logs-panel">
         <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-            <span>🗄️ PostgreSQL 데이터베이스 모니터링 (`counseling_data`)</span>
+            <span>🗄️ PostgreSQL 데이터베이스 모니터링 (counseling_data)</span>
             <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
                 <span id="system-health-badge" style="font-size: 0.75rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.3rem;">
                     <span style="width: 7px; height: 7px; border-radius: 50%; background: #6b7280; display: inline-block;" id="health-dot"></span>
@@ -1218,11 +1225,11 @@
         // 5단계 감도 레이블 및 카테고리별 임계값 매핑
         // 오른쪽 = 강함(민감, 낮은 임계값 = 더 많이 탐지) — 인간 직관과 일치
         const SENS_LEVELS = [
-            { label: "매우\n느슨", step: 1 },
-            { label: "느슨",      step: 2 },
-            { label: "보통",      step: 3 },
-            { label: "민감",      step: 4 },
-            { label: "매우\n민감", step: 5 },
+            { label: "최저", step: 1 },
+            { label: "느슨", step: 2 },
+            { label: "보통", step: 3 },
+            { label: "민감", step: 4 },
+            { label: "최고", step: 5 },
         ];
         // 오른쪽(민감)일수록 임계값 낮음(배율 작음) — 역순 배율
         const SENS_SCALE = [1.75, 1.35, 1.0, 0.72, 0.45];
@@ -1312,7 +1319,7 @@
 
     // 5단계 버튼 클릭 시 임계값 업데이트
     function setSensLevel(categoryKey, step, defaultVal) {
-        const newVal = parseFloat((defaultVal * [0.45, 0.72, 1.0, 1.35, 1.75][step]).toFixed(3));
+        const newVal = parseFloat((defaultVal * [1.75, 1.35, 1.0, 0.72, 0.45][step]).toFixed(3));
         if (categoryKey === '__linked__') {
             activeLinkedThreshold = newVal;
         } else if (categoryKey === '__safeguard__') {
@@ -1380,7 +1387,7 @@
         const topN = parseInt(document.getElementById("topn-select").value);
         
         if (!text.trim()) {
-            alert("분석할 텍스트를 입력해 주세요!");
+            showToast("⚠️ 입력 필요", "분석할 텍스트를 입력해 주세요.", false);
             return;
         }
 
@@ -1426,7 +1433,7 @@
         const text = document.getElementById("text-input").value;
         
         if (!text.trim()) {
-            alert("분석할 텍스트를 입력해 주세요!");
+            showToast("⚠️ 입력 필요", "분석할 텍스트를 입력해 주세요.", false);
             return;
         }
 
@@ -1750,9 +1757,21 @@
         const buttonEl = document.getElementById("btn-reanalyze-all");
         if (!buttonEl) return;
         
-        if (!confirm("DB에 저장된 모든 상담 내역을 현재 기준 임계치와 2D 안전 매트릭스 로직으로 전체 재분석하시겠습니까?")) {
+        if (!buttonEl.dataset.confirmed) {
+            buttonEl.dataset.confirmed = "1";
+            const prev = buttonEl.innerHTML;
+            buttonEl.innerHTML = "⚠️ 다시 클릭하여 확인";
+            buttonEl.style.background = "rgba(239,68,68,0.15)";
+            buttonEl.style.borderColor = "rgba(239,68,68,0.5)";
+            setTimeout(() => {
+                delete buttonEl.dataset.confirmed;
+                buttonEl.innerHTML = prev;
+                buttonEl.style.background = "";
+                buttonEl.style.borderColor = "";
+            }, 3000);
             return;
         }
+        delete buttonEl.dataset.confirmed;
 
         const originalHTML = buttonEl.innerHTML;
         buttonEl.disabled = true;
@@ -1950,7 +1969,7 @@
                     </div>
                 `;
  
-                const truncated = log.text.length > 25 ? log.text.substring(0, 25) + "..." : log.text;
+                const truncated = log.text.length > 45 ? log.text.substring(0, 45) + "..." : log.text;
                 
                 // 완료 상태를 세련된 Vercel/Cloudflare 스타일 도트로 표현
                 let statusHTML;
@@ -1992,6 +2011,7 @@
         } catch (error) {
             console.error("히스토리 갱신 실패", error);
         }
+        await refreshStats();
     }
 
     // 7. 피드백 제출
@@ -2100,16 +2120,9 @@
         }
     }
 
-    // 30초마다 헬스 체크, 통계는 히스토리 갱신과 함께 실행
+    // 30초마다 헬스 체크
     checkSystemHealth();
     setInterval(checkSystemHealth, 30000);
-
-    // 기존 자동 갱신에 통계 포함
-    const _origRefreshHistory = refreshHistory;
-    refreshHistory = async function() {
-        await _origRefreshHistory();
-        await refreshStats();
-    };
 
 </script>
 
