@@ -620,6 +620,8 @@
                 <li><a href="#spec">6. 시스템 기술 스펙</a></li>
                 <li><a href="#quality">7. 시스템 핵심 품질 개선 사항 (QE)</a></li>
                 <li><a href="#value">8. 비즈니스 효과 및 미래 로드맵</a></li>
+                <li><a href="#runbook">9. 운영 런북</a></li>
+                <li><a href="#roadmap">10. 확장 로드맵</a></li>
             </ul>
         </aside>
 
@@ -1042,9 +1044,90 @@
                     </ol>
                 </div>
 
+            </section>
+
+            <!-- 운영 런북 -->
+            <section id="runbook" class="section">
+                <span class="section-tag">Operations</span>
+                <h2>운영 런북 (Operational Runbook)</h2>
+
+                <h3 style="margin:1.5rem 0 0.5rem;color:#a78bfa;">배포 절차</h3>
+                <pre><code><span class="comment"># 1. 환경변수 설정 (.env 파일 확인)</span>
+cat .env | grep -E "DANGER_THRESHOLD|LLAMA_API|DB_"
+
+<span class="comment"># 2. 배포 실행 (헬스체크 + 조건부 재분석 포함)</span>
+bash deploy.sh
+
+<span class="comment"># 3. 서비스 상태 확인</span>
+docker compose ps
+curl http://localhost:8000/api/health</code></pre>
+
+                <h3 style="margin:1.5rem 0 0.5rem;color:#a78bfa;">장애 대응</h3>
+                <table class="triage-table" style="font-size:0.82rem;">
+                    <thead><tr><th>증상</th><th>원인</th><th>조치</th></tr></thead>
+                    <tbody>
+                        <tr><td>분석 결과가 모두 "정상 문의"</td><td>임베딩 서버 다운 또는 임계값 너무 높음</td><td><code>curl /api/health</code> 확인 → llama.cpp 재시작 또는 .env 임계값 낮춤</td></tr>
+                        <tr><td>모든 케이스에 위험 분류</td><td>임계값 너무 낮음 / 베이스라인 미초기화</td><td>슬라이더로 임계값 상향 테스트 → .env 반영 후 재배포</td></tr>
+                        <tr><td>PENDING 기록 쌓임</td><td>Celery 워커 중단 또는 Redis 연결 끊김</td><td><code>docker compose logs celery-worker</code> → UI에서 🧹 PENDING 정리</td></tr>
+                        <tr><td>재분석 버튼 동작 안 함</td><td>웹 앱과 DB 연결 실패</td><td><code>curl /api/health</code>의 database 필드 확인</td></tr>
+                        <tr><td>시급성 오판정 (IMMEDIATE 과다)</td><td>과거 사건을 현재로 판단</td><td>정상 동작 — 개선된 과거형 감지 로직 포함됨</td></tr>
+                    </tbody>
+                </table>
+
+                <h3 style="margin:1.5rem 0 0.5rem;color:#a78bfa;">임계값 튜닝 가이드</h3>
+                <p>임계값은 <code>.env</code> 파일의 <code>DANGER_THRESHOLDS</code>에서 관리합니다. 변경 후 반드시 재배포 필요.</p>
+                <pre><code><span class="comment"># .env 예시 (낮을수록 민감, 높을수록 엄격)</span>
+DANGER_THRESHOLDS={"폭력 및 폭행": 0.27, "성폭력": 0.27, "이물질 상품": 0.28, "식품위생": 0.28, "안전사고": 0.27, "법적/민원제기": 0.22, "언론제보": 0.22}
+
+<span class="comment"># UI 슬라이더로 실시간 테스트 후 효과가 검증된 값을 .env에 반영</span>
+<span class="comment"># 피드백 기반 보정 제안: UI 하단 "🔬 임계값 보정 제안" 버튼 클릭</span></code></pre>
+
+                <h3 style="margin:1.5rem 0 0.5rem;color:#a78bfa;">심각도(Severity) 해석 기준</h3>
+                <table class="triage-table" style="font-size:0.82rem;">
+                    <thead><tr><th>점수</th><th>의미</th><th>권장 대응</th></tr></thead>
+                    <tbody>
+                        <tr><td style="color:#ef4444;font-weight:700;">10점</td><td>사망·자살·자해 등 critical 키워드</td><td>즉각 CSO + 법무 에스컬레이션</td></tr>
+                        <tr><td style="color:#f87171;font-weight:700;">8~9점</td><td>다중 위협 + IMMEDIATE 시급성 + 공격적 어조</td><td>PR + Legal + QA 긴급 배정</td></tr>
+                        <tr><td style="color:#fbbf24;font-weight:700;">5~7점</td><td>위험 카테고리 탐지 + 법적/언론 위협</td><td>CS 총괄 매니저 배정 (SLA 24h)</td></tr>
+                        <tr><td style="color:#34d399;font-weight:700;">1~4점</td><td>단순 위험 언급 또는 일반 불만</td><td>CS 선임 상담원 배정 (SLA 48h)</td></tr>
+                    </tbody>
+                </table>
+
+                <h3 style="margin:1.5rem 0 0.5rem;color:#a78bfa;">API 엔드포인트 목록</h3>
+                <table class="triage-table" style="font-size:0.82rem;">
+                    <thead><tr><th>Method</th><th>경로</th><th>설명</th></tr></thead>
+                    <tbody>
+                        <tr><td>GET</td><td>/api/health</td><td>임베딩 서버 + DB 상태</td></tr>
+                        <tr><td>GET</td><td>/api/stats</td><td>상태별/위험도별/시급성별 집계</td></tr>
+                        <tr><td>GET</td><td>/api/settings</td><td>현재 임계값 설정 조회</td></tr>
+                        <tr><td>GET</td><td>/api/history</td><td>최근 100건 조회</td></tr>
+                        <tr><td>POST</td><td>/api/extract/sync</td><td>실시간 동기 분석</td></tr>
+                        <tr><td>POST</td><td>/api/extract/async</td><td>Celery 비동기 분석 등록</td></tr>
+                        <tr><td>POST</td><td>/api/reanalyze/{id}</td><td>특정 건 재분석</td></tr>
+                        <tr><td>POST</td><td>/api/reanalyze-all</td><td>전체 재분석</td></tr>
+                        <tr><td>POST</td><td>/api/feedback/{id}</td><td>오분류 피드백 제출</td></tr>
+                        <tr><td>GET</td><td>/api/feedback/summary</td><td>피드백 정확도 집계</td></tr>
+                        <tr><td>GET</td><td>/api/threshold-calibrate</td><td>피드백 기반 임계값 보정 제안</td></tr>
+                        <tr><td>POST</td><td>/api/cleanup-pending</td><td>타임아웃 PENDING 정리</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="roadmap" class="section">
+                <span class="section-tag">Roadmap</span>
+                <h2>확장 로드맵</h2>
+                <ol class="compare-list" style="padding-left:1.5rem;line-height:2.2;">
+                    <li><strong>LLM 연계</strong> — 탐지 결과 기반 자동 응답 초안 생성 (GPT-4 / Claude API)</li>
+                    <li><strong>CRM 통합</strong> — Salesforce / 자체 CRM에 탐지 결과 자동 티켓 생성</li>
+                    <li><strong>알림 자동화</strong> — Slack / 이메일 / SMS로 IMMEDIATE 케이스 즉각 전파</li>
+                    <li><strong>피드백 자동 학습</strong> — 누적 피드백 → 임계값 자동 보정 → 주기적 재배포 파이프라인</li>
+                    <li><strong>음성 입력</strong> — STT(Speech-to-Text) 연계로 통화 녹취 실시간 분석</li>
+                    <li><strong>멀티 테넌트</strong> — 브랜드/점포별 독립 임계값 프로파일</li>
+                </ol>
+
                 <div class="footer-logo">
                     <p>© 2026 Intelligence Risk Detection & Triage System. All Rights Reserved.</p>
-                    <p style="font-size: 0.75rem; margin-top: 0.5rem;">Designed and Powered by Advanced Agentic NLP Pipeline (IRDA v2).</p>
+                    <p style="font-size: 0.75rem; margin-top: 0.5rem;">Powered by BGE-M3 · FastAPI · Celery · PostgreSQL</p>
                 </div>
             </section>
         </main>

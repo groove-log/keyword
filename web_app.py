@@ -492,7 +492,99 @@ async def get_feedback_summary():
         raise HTTPException(status_code=500, detail=f"피드백 조회 실패: {str(e)}")
 
 
-# 8. 시스템 헬스 체크 API
+# 8. 피드백 기반 임계값 자동 보정 제안 API
+@app.get("/api/threshold-calibrate")
+async def calibrate_thresholds():
+    """
+    피드백 데이터를 분석하여 각 카테고리별 임계값 조정 방향을 제안.
+    - 오분류가 많은 카테고리: 임계값 상향 (false positive 감소)
+    - 누락이 많은 카테고리: 임계값 하향 (false negative 감소)
+    실제 .env 파일을 수정하지 않으며, 제안(suggestion)만 반환합니다.
+    """
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # 피드백 테이블 존재 확인
+        cur.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_name = 'counseling_feedback'
+            )
+        """)
+        if not cur.fetchone()[0]:
+            cur.close(); conn.close()
+            return {"suggestions": [], "message": "피드백 데이터가 아직 없습니다. 상담원 피드백이 누적되면 자동 보정이 가능합니다."}
+
+        # 오분류된 케이스에서 실제 카테고리와 분류 결과의 불일치 집계
+        cur.execute("""
+            SELECT f.actual_danger, c.risk_level, COUNT(*) as cnt
+            FROM counseling_feedback f
+            JOIN counseling_data c ON c.id = f.counseling_id
+            WHERE f.is_correct = false AND f.actual_danger IS NOT NULL
+            GROUP BY f.actual_danger, c.risk_level
+            ORDER BY cnt DESC
+        """)
+        mismatch_rows = cur.fetchall()
+
+        # 카테고리별 정확도 계산
+        cur.execute("""
+            SELECT c.risk_level,
+                   SUM(CASE WHEN f.is_correct THEN 1 ELSE 0 END) as correct_cnt,
+                   COUNT(*) as total_cnt
+            FROM counseling_feedback f
+            JOIN counseling_data c ON c.id = f.counseling_id
+            GROUP BY c.risk_level
+        """)
+        accuracy_rows = cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+        # 현재 임계값
+        current_thresholds = {**classifier.thresholds}
+
+        suggestions = []
+        for risk_level, correct_cnt, total_cnt in accuracy_rows:
+            if total_cnt < 5:
+                continue  # 샘플 부족 시 제안 없음
+            accuracy = correct_cnt / total_cnt
+            current = current_thresholds.get(risk_level, classifier.threshold)
+
+            if accuracy < 0.6 and risk_level != "정상 문의":
+                # 오분류율 40% 이상 → 임계값 상향 (더 엄격하게)
+                suggested = round(min(0.95, current + 0.03), 3)
+                suggestions.append({
+                    "category": risk_level,
+                    "current_threshold": current,
+                    "suggested_threshold": suggested,
+                    "direction": "up",
+                    "reason": f"오분류율 {round((1-accuracy)*100)}% (샘플 {total_cnt}건) — 임계값 상향으로 false positive 감소",
+                    "accuracy_pct": round(accuracy * 100, 1)
+                })
+            elif accuracy > 0.9 and risk_level != "정상 문의":
+                # 정확도 90% 이상 → 임계값 소폭 하향도 고려 (더 민감하게)
+                suggested = round(max(0.10, current - 0.02), 3)
+                suggestions.append({
+                    "category": risk_level,
+                    "current_threshold": current,
+                    "suggested_threshold": suggested,
+                    "direction": "down",
+                    "reason": f"정확도 {round(accuracy*100)}% (샘플 {total_cnt}건) — 안전 범위 내 임계값 소폭 하향 고려",
+                    "accuracy_pct": round(accuracy * 100, 1)
+                })
+
+        return {
+            "suggestions": suggestions,
+            "total_feedback_analyzed": sum(r[2] for r in accuracy_rows),
+            "note": "제안 수치는 참고용이며, .env 파일 수동 수정 후 서버 재시작이 필요합니다."
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"임계값 보정 분석 실패: {str(e)}")
+
+
+# 10. 시스템 헬스 체크 API
 @app.get("/api/health")
 async def health_check():
     """임베딩 서버 및 DB 연결 상태 확인"""
@@ -521,7 +613,7 @@ async def health_check():
     return results
 
 
-# 8. PENDING 타임아웃 정리 API (1시간 이상 PENDING 기록을 TIMEOUT으로 처리)
+# 11. PENDING 타임아웃 정리 API (1시간 이상 PENDING 기록을 TIMEOUT으로 처리)
 @app.post("/api/cleanup-pending")
 async def cleanup_pending():
     """1시간 이상 PENDING 상태인 고아 기록을 TIMEOUT으로 정리"""
@@ -543,7 +635,7 @@ async def cleanup_pending():
         raise HTTPException(status_code=500, detail=f"PENDING 정리 실패: {str(e)}")
 
 
-# 9. DB 통계 API
+# 12. DB 통계 API
 @app.get("/api/stats")
 async def get_stats():
     """상태별 기록 수, 위험 카테고리 분포, 시급성 분포 등 집계"""

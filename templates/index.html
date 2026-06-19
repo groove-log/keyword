@@ -1052,13 +1052,19 @@
             </div>
         </div>
         <!-- 통계 요약 바 -->
-        <div id="stats-bar" style="display: flex; gap: 1.5rem; padding: 0.6rem 0; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); flex-wrap: wrap;">
+        <div id="stats-bar" style="display: flex; gap: 1.5rem; padding: 0.6rem 0; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; align-items: center;">
             <span style="font-size: 0.78rem; color: var(--text-muted);">전체: <strong id="stat-total" style="color: var(--text-main);">-</strong>건</span>
             <span style="font-size: 0.78rem; color: #34d399;">완료: <strong id="stat-completed">-</strong></span>
             <span style="font-size: 0.78rem; color: #fbbf24;">대기중: <strong id="stat-pending">-</strong></span>
             <span style="font-size: 0.78rem; color: #f87171;">실패: <strong id="stat-failed">-</strong></span>
             <span style="font-size: 0.78rem; color: #9ca3af;">시간초과: <strong id="stat-timeout">-</strong></span>
-            <span style="font-size: 0.78rem; color: #f87171; margin-left: auto;">🚨 IMMEDIATE: <strong id="stat-immediate">-</strong>건</span>
+            <span style="font-size: 0.78rem; color: #f87171;">🚨 IMMEDIATE: <strong id="stat-immediate">-</strong>건</span>
+            <button style="margin-left: auto; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.25); border-radius: 4px; color: #a78bfa; cursor: pointer; padding: 0.2rem 0.6rem; font-size: 0.75rem;" onclick="loadCalibrationSuggestions()" title="피드백 데이터 기반 임계값 보정 제안 불러오기">🔬 임계값 보정 제안</button>
+        </div>
+        <!-- 임계값 자동 보정 제안 패널 (토글) -->
+        <div id="calibration-panel" style="display:none; background: rgba(139,92,246,0.05); border: 1px solid rgba(139,92,246,0.15); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; font-size: 0.82rem;">
+            <div style="font-weight: 600; color: #a78bfa; margin-bottom: 0.5rem;">🔬 피드백 기반 임계값 보정 제안</div>
+            <div id="calibration-content" style="color: var(--text-muted);">분석 중...</div>
         </div>
         
         <div class="table-container">
@@ -1968,6 +1974,39 @@
             }
         } catch (e) {
             showToast("❌ 피드백 실패", "서버와 통신할 수 없습니다.", false);
+        }
+    }
+
+    // 8. 임계값 자동 보정 제안 불러오기
+    async function loadCalibrationSuggestions() {
+        const panel = document.getElementById("calibration-panel");
+        const content = document.getElementById("calibration-content");
+        panel.style.display = panel.style.display === "none" ? "block" : "none";
+        if (panel.style.display === "none") return;
+        content.innerHTML = "분석 중...";
+        try {
+            const res = await fetch("/api/threshold-calibrate");
+            const data = await res.json();
+            if (!data.suggestions || data.suggestions.length === 0) {
+                content.innerHTML = `<span style="color:var(--text-muted);">${data.message || "아직 분석할 피드백 데이터가 충분하지 않습니다."}</span>`;
+                return;
+            }
+            let html = `<div style="color:var(--text-muted);margin-bottom:0.5rem;">분석 피드백 ${data.total_feedback_analyzed}건 기반 제안 (${data.note})</div>`;
+            html += '<div style="display:flex;flex-direction:column;gap:0.4rem;">';
+            data.suggestions.forEach(s => {
+                const arrow = s.direction === "up" ? "↑" : "↓";
+                const color = s.direction === "up" ? "#f87171" : "#34d399";
+                html += `<div style="display:flex;align-items:center;gap:0.75rem;background:rgba(255,255,255,0.04);padding:0.4rem 0.6rem;border-radius:6px;">
+                    <span style="font-weight:600;color:var(--text-main);min-width:120px;">${s.category}</span>
+                    <span style="color:var(--text-muted);">${s.current_threshold} ${arrow} <strong style="color:${color};">${s.suggested_threshold}</strong></span>
+                    <span style="color:var(--text-muted);font-size:0.75rem;">${s.reason}</span>
+                    <span style="background:rgba(255,255,255,0.08);padding:0.1rem 0.35rem;border-radius:4px;font-size:0.72rem;">정확도 ${s.accuracy_pct}%</span>
+                </div>`;
+            });
+            html += '</div>';
+            content.innerHTML = html;
+        } catch (e) {
+            content.innerHTML = `<span style="color:#f87171;">보정 제안 불러오기 실패: ${e.message}</span>`;
         }
     }
 
